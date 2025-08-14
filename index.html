@@ -36,7 +36,7 @@
     <a-entity light="type: ambient; intensity: 1"></a-entity>
 
     <!-- Face Anchor: 얼굴 기준으로 요소 붙이기 -->
-    <a-entity mindar-face-target="anchorIndex: 168"> <!-- 이마/정면 부근 -->
+    <a-entity mindar-face-target="anchorIndex: 151"> <!-- 이마/정면 부근 -->
       <!-- 랜덤 문구: 처음엔 t1 표시, 버튼으로 교체 -->
       <a-plane id="msg" src="#t1" position="0 0.5 -0.5" width="0.9" height="0.25" transparent="true"></a-plane>
       <!-- 로고: 좌상단 느낌 -->
@@ -46,20 +46,9 @@
 
   <!-- UI 버튼 -->
   <div class="ui">
-    <button id="btnNext" class="btn">문구 바꾸기</button>
     <button id="btnShot" class="btn secondary">사진 저장</button>
   </div>
 
-  <script>
-    // 랜덤/순환 문구
-    const texts = ['#t1','#t2','#t3'];
-    let idx = 0;
-    const msg = document.querySelector('#msg');
-    document.querySelector('#btnNext').addEventListener('click', ()=>{
-      idx = (idx + 1) % texts.length;
-      msg.setAttribute('src', texts[idx]);
-      toast('문구가 변경되었습니다.');
-    });
 
     // 캡처(스크린샷) 저장
     document.querySelector('#btnShot').addEventListener('click', async ()=>{
@@ -67,7 +56,7 @@
         const canvas = document.querySelector('canvas'); // A-Frame 렌더러 캔버스
         const data = canvas.toDataURL('image/png');
         const a = document.createElement('a');
-        a.href = data; a.download = 'clean-commitment.png'; a.click();
+        a.href = data; a.download = 'KAPE 청렴 챌린지.png'; a.click();
         toast('사진이 저장되었습니다.');
       }catch(e){
         toast('저장이 안 되면 브라우저 권한/HTTPS를 확인해주세요.');
