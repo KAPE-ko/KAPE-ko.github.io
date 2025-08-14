@@ -21,9 +21,9 @@
   <div id="toast" class="toast" style="display:none;"></div>
 
   <!-- WebAR Scene -->
-  <a-scene mindar-face="autoStart: true" embedded vr-mode-ui="enabled: false"
-           device-orientation-permission-ui="enabled: false">
-    <a-assets>
+<a-scene mindar-face embedded vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+   <a-camera active="false" position="0 0 0"></a-camera>
+      <a-assets>
       <!-- 교체할 자산들: /assets 폴더에 파일 넣기 -->
       <img id="logo" src="assets/logo.png" />
       <img id="t1" src="assets/text1.png" />
@@ -36,13 +36,12 @@
     <a-entity light="type: ambient; intensity: 1"></a-entity>
 
     <!-- Face Anchor: 얼굴 기준으로 요소 붙이기 -->
-    <a-entity mindar-face-target="anchorIndex: 151"> <!-- 이마/정면 부근 -->
+   <a-entity mindar-face-target="anchorIndex: 151"> <!-- 이마/정면 부근 -->
       <!-- 랜덤 문구: 처음엔 t1 표시, 버튼으로 교체 -->
       <a-plane id="msg" src="#t1" position="0 0.5 -0.5" width="0.9" height="0.25" transparent="true"></a-plane>
       <!-- 로고: 좌상단 느낌 -->
       <a-plane src="#logo" position="-0.45 0.8 -0.5" width="0.25" height="0.1" transparent="true"></a-plane>
     </a-entity>
-  </a-scene>
 
   <!-- UI 버튼 -->
   <div class="ui">
