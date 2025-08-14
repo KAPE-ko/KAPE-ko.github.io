@@ -4,44 +4,76 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
   <title>축산물품질평가원과 함께하는 청렴네컷! 청렴내것!</title>
-  <!-- A-Frame & MindAR (Face Tracking) -->
-<script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-face-aframe.prod.js"></script>
+  <!-- A-Frame & MindAR (권장 버전 매칭) -->
+  <script src="https://cdn.jsdelivr.net/npm/aframe@1.4.1/dist/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-face-aframe.prod.js"></script>
   <style>
     body{margin:0;background:#000;font-family:system-ui,AppleSDGothicNeo,'Noto Sans KR',sans-serif}
-    .ui {position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;justify-content:center;align-items:center;padding:10px;}
-    .btn {background:#06b6d4;color:#fff;border:0;border-radius:10px;padding:10px 14px;font-weight:700}
-    .btn.secondary {background:#334155}
-    .toast{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:8px 12px;border-radius:8px;font-size:14px;opacity:.9}
-    .brand{position:fixed;top:10px;left:10px;color:#fff;font-weight:700;background:rgba(0,0,0,.35);padding:6px 10px;border-radius:8px}
+    .ui{position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;justify-content:center;align-items:center;padding:10px;z-index:5}
+    .btn{background:#06b6d4;color:#fff;border:0;border-radius:10px;padding:10px 14px;font-weight:700}
+    .btn.secondary{background:#334155}
+    .toast{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:8px 12px;border-radius:8px;font-size:14px;opacity:.95;z-index:5;display:none}
+    .brand{position:fixed;top:10px;left:10px;color:#fff;font-weight:700;background:rgba(0,0,0,.35);padding:6px 10px;border-radius:8px;z-index:5}
   </style>
 </head>
 <body>
   <div class="brand">축산물품질평가원과 함께하는 청렴네컷! 청렴내것!</div>
-  <div id="toast" class="toast" style="display:none;"></div>
+  <div id="toast" class="toast"></div>
 
-  <!-- WebAR Scene -->
-<a-scene mindar-face embedded vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
-   <a-camera active="false" position="0 0 0"></a-camera>
-      <a-assets>
-      <!-- 교체할 자산들: /assets 폴더에 파일 넣기 -->
-      <img id="logo" src="assets/logo.png" />
-      <img id="t1" src="assets/text1.png" />
-      <img id="t2" src="assets/text2.png" />
-      <img id="t3" src="assets/text3.png" />
+  <!-- autoStart를 끄고 버튼으로 시작 + 로딩/스캔 UI 표시 -->
+  <a-scene mindar-face="autoStart:false; uiLoading: yes; uiScanning: yes; uiError: yes;"
+           embedded vr-mode-ui="enabled:false" device-orientation-permission-ui="enabled:false">
+
+    <a-assets>
+      <img id="logo" src="assets/logo.png" crossorigin="anonymous"/>
+      <img id="t1" src="assets/text1.png" crossorigin="anonymous"/>
+      <img id="t2" src="assets/text2.png" crossorigin="anonymous"/>
+      <img id="t3" src="assets/text3.png" crossorigin="anonymous"/>
     </a-assets>
 
-    <!-- 카메라/조명 -->
-    <a-entity camera position="0 0 0"></a-entity>
-    <a-entity light="type: ambient; intensity: 3"></a-entity>
+    <!-- MindAR에서는 기본 카메라를 관리하므로, active=false 카메라만 두고 별도 camera 엔터티 중복 금지 -->
+    <a-camera active="false" position="0 0 0"></a-camera>
+    <a-entity light="type: ambient; intensity: 1"></a-entity>
 
-    <!-- Face Anchor: 얼굴 기준으로 요소 붙이기 -->
-   <a-entity mindar-face-target="anchorIndex: 1"> <!-- 이마/정면 부근 -->
-      <!-- 랜덤 문구: 처음엔 t1 표시, 버튼으로 교체 -->
-      <a-plane id="msg" src="#t1" position="0 0 0" width="1" height="1" transparent="true"></a-plane>
+    <!-- 얼굴 앵커: 코(1)로 안정도↑  / 크기 크게 배치해서 처음에 꼭 보이게 -->
+    <a-entity mindar-face-target="anchorIndex: 1">
+      <a-plane id="msg" src="#t1" position="0 0 -0.5" width="1.2" height="0.35" transparent="true"></a-plane>
+      <!-- 필요하면 로고도 배치
+      <a-plane src="#logo" position="-0.35 0.35 -0.5" width="0.35" height="0.14" transparent="true"></a-plane>
+      -->
     </a-entity>
+  </a-scene>
 
+  <div class="ui">
+    <button id="btnStart" class="btn">카메라 시작</button>
+    <button id="btnNext" class="btn secondary">문구 바꾸기</button>
+  </div>
 
-</a-scene>
+  <script>
+    const texts = ['#t1','#t2','#t3'];
+    let idx = 0;
+    const msg = document.querySelector('#msg');
+    const toastEl = document.getElementById('toast');
+
+    function toast(s){ toastEl.textContent=s; toastEl.style.display='block';
+      setTimeout(()=>toastEl.style.display='none',1600); }
+
+    // 권한 요청/트래킹 시작 (사용자 제스처 필요 환경 대응)
+    document.getElementById('btnStart').addEventListener('click', async ()=>{
+      try{
+        const scene = document.querySelector('a-scene');
+        await scene.systems['mindar-face-system'].start();
+        document.getElementById('btnStart').style.display='none';
+        toast('카메라가 시작되었습니다.');
+      }catch(e){ alert('카메라 시작 실패: '+ e); }
+    });
+
+    // 문구 순환
+    document.getElementById('btnNext').addEventListener('click', ()=>{
+      idx = (idx + 1) % texts.length;
+      msg.setAttribute('src', texts[idx]);
+      toast('문구가 변경되었습니다.');
+    });
+  </script>
 </body>
 </html>
