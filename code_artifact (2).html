@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>꿀벌의 귀가 도우미 - 1+등급 꿀</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+
+        body {
+            font-family: 'Jua', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* 스크롤 방지 */
+            background-color: #87CEEB; /* 하늘색 배경 */
+            user-select: none; /* 텍스트 선택 방지 */
+            -webkit-user-select: none;
+            touch-action: none; /* 더블 탭 줌 등 기본 터치 동작 방지 */
+        }
+
+        #app-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 꿀벌 애니메이션 둥둥 떠다니는 효과 */
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(-5deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+            100% { transform: translateY(0px) rotate(-5deg); }
+        }
+
+        /* 힘들어하는 꿀벌 애니메이션 */
+        @keyframes struggle {
+            0% { transform: translateX(-5px) translateY(5px); }
+            25% { transform: translateX(5px) translateY(-5px); }
+            50% { transform: translateX(-5px) translateY(5px); }
+            75% { transform: translateX(5px) translateY(-5px); }
+            100% { transform: translateX(0) translateY(0); }
+        }
+
+        /* 바람 부는 효과 애니메이션 */
+        @keyframes wind {
+            0% { opacity: 0; transform: translateX(50px) scale(0.5); }
+            50% { opacity: 0.6; transform: translateX(0px) scale(1.2); }
+            100% { opacity: 0; transform: translateX(-50px) scale(0.8); }
+        }
+
+        /* 텍스트 팝업 애니메이션 */
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            80% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* 꿀단지 반짝임 효과 */
+        @keyframes shine {
+            0% { filter: brightness(1); }
+            50% { filter: brightness(1.3) drop-shadow(0 0 20px gold); }
+            100% { filter: brightness(1); }
+        }
+
+        .animate-float { animation: float 3s ease-in-out infinite; }
+        .animate-struggle { animation: struggle 0.5s ease-in-out infinite; }
+        .animate-pop { animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .animate-shine { animation: shine 2s infinite; }
+
+        /* 진행도 게이지 트랜지션 */
+        #progress-fill {
+            transition: width 0.1s linear;
+        }
+
+        /* 풀스크린 버튼 스타일 */
+        #fullscreen-btn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        /* 화면 전환 유틸리티 */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-size: cover;
+            background-position: center;
+        }
+        .screen.active {
+            display: flex;
+        }
+
+        /* 배경 구름 */
+        .cloud {
+            position: absolute;
+            background: white;
+            border-radius: 50px;
+            opacity: 0.8;
+        }
+        .cloud::before, .cloud::after {
+            content: '';
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+        }
+        
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    
+    <!-- 전체화면 버튼 -->
+    <button id="fullscreen-btn" onclick="toggleFullScreen()" class="hover:bg-white transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+        </svg>
+    </button>
+
+    <!-- 배경 장식 (구름) -->
+    <div class="cloud" style="width: 150px; height: 50px; top: 10%; left: 10%;"></div>
+    <div class="cloud" style="width: 200px; height: 60px; top: 20%; right: 15%;"></div>
+    <div class="cloud" style="width: 120px; height: 40px; top: 50%; left: 5%;"></div>
+    
+    <style>
+        .cloud:nth-child(2)::before { width: 70px; height: 70px; top: -30px; left: 20px; }
+        .cloud:nth-child(2)::after { width: 50px; height: 50px; top: -20px; right: 20px; }
+        .cloud:nth-child(3)::before { width: 90px; height: 90px; top: -40px; left: 30px; }
+        .cloud:nth-child(3)::after { width: 60px; height: 60px; top: -25px; right: 30px; }
+        .cloud:nth-child(4)::before { width: 60px; height: 60px; top: -25px; left: 15px; }
+        .cloud:nth-child(4)::after { width: 40px; height: 40px; top: -15px; right: 15px; }
+    </style>
+
+    <!-- 1. 메인 화면 -->
+    <div id="screen-main" class="screen active cursor-pointer" onclick="startApp()">
+        <!-- 타이틀 배경 -->
+        <div class="bg-white/80 p-8 rounded-3xl shadow-xl border-4 border-yellow-400 text-center max-w-2xl mx-4 mb-10 z-10 animate-float">
+            <h1 class="text-4xl md:text-5xl lg:text-6xl text-amber-700 font-bold mb-4 drop-shadow-md">
+                꿀벌의 귀가 도우미
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-800 leading-relaxed">
+                열심히 꿀을 딴 꿀벌이 지쳐서 집에 가지 못하고 있어요!<br>
+                <span class="text-blue-600 font-bold text-2xl md:text-3xl mt-2 block">화면을 터치하고 입김을 불어 도와주세요!</span>
+            </p>
+        </div>
+
+        <!-- 꿀벌 캐릭터 (SVG) -->
+        <div class="relative animate-struggle">
+            <div class="text-9xl filter drop-shadow-lg">🐝</div>
+            <!-- 땀방울 -->
+            <div class="absolute -top-4 -right-4 text-4xl">💧</div>
+            <div class="absolute top-4 -left-4 text-3xl">💦</div>
+            <!-- 무거운 꿀통 -->
+            <div class="absolute -bottom-8 -right-8 text-7xl">🍯</div>
+        </div>
+
+        <div class="absolute bottom-10 animate-bounce text-2xl text-white font-bold bg-amber-500 px-6 py-3 rounded-full shadow-lg border-2 border-white">
+            화면을 터치하여 시작하기👆
+        </div>
+    </div>
+
+    <!-- 2. 플레이 화면 -->
+    <div id="screen-play" class="screen">
+        
+        <!-- 미터기 UI -->
+        <div class="absolute top-10 w-4/5 max-w-3xl bg-white/90 p-4 rounded-2xl shadow-lg border-4 border-amber-300 z-20 flex flex-col items-center">
+            <div class="flex justify-between w-full mb-2 text-2xl font-bold text-amber-800">
+                <span>출발지 🌻</span>
+                <span>집까지 남은 거리</span>
+                <span>벌통 🛖</span>
+            </div>
+            <div class="w-full h-8 bg-gray-200 rounded-full overflow-hidden relative border-2 border-gray-300 shadow-inner">
+                <!-- 진행바 배경 패턴 -->
+                <div class="absolute inset-0 opacity-20" style="background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, #000 10px, #000 20px);"></div>
+                <!-- 실제 채워지는 바 -->
+                <div id="progress-fill" class="h-full bg-gradient-to-r from-yellow-400 to-amber-500 w-0 relative">
+                    <!-- 반짝임 효과 -->
+                    <div class="absolute top-0 right-0 bottom-0 w-10 bg-white opacity-30 skew-x-[-20deg]"></div>
+                </div>
+            </div>
+            <div id="mic-status" class="mt-3 text-lg font-bold text-gray-500">마이크 연결 대기중...</div>
+        </div>
+
+        <!-- 카운트다운 UI -->
+        <div id="countdown-ui" class="absolute inset-0 flex items-center justify-center z-50 bg-black/40 backdrop-blur-sm hidden">
+            <div id="countdown-text" class="text-9xl font-bold text-white drop-shadow-[0_0_20px_rgba(255,165,0,1)]">3</div>
+        </div>
+
+        <!-- 게임 영역 -->
+        <div class="relative w-full h-1/2 flex items-center mt-32">
+            <!-- 꿀벌 (움직임) -->
+            <div id="player-bee" class="absolute left-10 text-8xl z-10 transition-all duration-100 filter drop-shadow-xl">
+                🐝<span class="absolute -bottom-4 -right-4 text-5xl">🍯</span>
+            </div>
+            
+            <!-- 바람 이펙트 (보이지 않다가 불 때 나타남) -->
+            <div id="wind-effect" class="absolute left-0 w-full h-full pointer-events-none opacity-0">
+                <div class="absolute top-1/4 left-1/4 w-32 h-4 bg-white rounded-full" style="animation: wind 1s linear infinite;"></div>
+                <div class="absolute top-2/4 left-1/3 w-48 h-6 bg-white rounded-full" style="animation: wind 1.2s linear infinite 0.2s;"></div>
+                <div class="absolute top-3/4 left-1/5 w-24 h-4 bg-white rounded-full" style="animation: wind 0.8s linear infinite 0.5s;"></div>
+            </div>
+
+            <!-- 목적지 (벌통) -->
+            <div class="absolute right-10 text-9xl z-0 filter drop-shadow-2xl">
+                🛖
+            </div>
+        </div>
+
+        <!-- 하단 안내 멘트 -->
+        <div id="play-instruction" class="absolute bottom-20 bg-white/90 px-8 py-4 rounded-full shadow-lg border-4 border-blue-400 text-3xl font-bold text-blue-600 animate-pulse hidden">
+            태블릿 마이크를 향해 '후~' 하고 바람을 불어주세요! 🌬️
+        </div>
+    </div>
+
+    <!-- 3. 결과 화면 -->
+    <div id="screen-result" class="screen">
+        <!-- 폭죽 배경 효과 (간단히 이모지로 대체) -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+            <div class="absolute top-10 left-10 text-6xl animate-bounce" style="animation-delay: 0.1s">✨</div>
+            <div class="absolute top-20 right-20 text-6xl animate-bounce" style="animation-delay: 0.3s">🎉</div>
+            <div class="absolute bottom-32 left-1/4 text-5xl animate-bounce" style="animation-delay: 0.5s">🎊</div>
+            <div class="absolute top-1/3 right-1/4 text-6xl animate-bounce" style="animation-delay: 0.2s">✨</div>
+        </div>
+
+        <div class="bg-white/95 p-8 md:p-12 rounded-3xl shadow-2xl border-8 border-yellow-400 text-center max-w-3xl mx-4 z-10 flex flex-col items-center">
+            
+            <div class="flex justify-center items-end mb-6 space-x-4">
+                <div class="text-8xl animate-bounce">🐝</div>
+                <div class="text-5xl pb-4">❤️</div>
+                <div class="text-9xl animate-shine relative">
+                    🍯
+                    <!-- 1+등급 뱃지 -->
+                    <div class="absolute -top-4 -right-6 bg-red-500 text-white text-2xl font-black px-4 py-2 rounded-full border-4 border-white shadow-lg transform rotate-12">
+                        1+등급
+                    </div>
+                </div>
+            </div>
+
+            <h2 class="text-4xl md:text-5xl text-green-600 font-bold mb-6 drop-shadow-sm">
+                관람객님 덕분에 무사히 집에 도착했어요!<br>고맙습니다!
+            </h2>
+            
+            <div class="bg-amber-50 p-6 rounded-2xl border-2 border-amber-200">
+                <p class="text-2xl md:text-3xl text-gray-800 leading-relaxed font-semibold">
+                    꿀벌이 열심히 모아온 꿀은<br>
+                    <span class="text-blue-700 font-black">축산물품질평가원</span>의 깐깐한 심사를 거쳐<br>
+                    최상급 <span class="text-red-500 font-black text-4xl bg-yellow-200 px-2 rounded">1+등급 꿀</span>로 출하되었답니다!
+                </p>
+                <p class="text-xl md:text-2xl text-gray-600 mt-4 border-t-2 border-amber-200 pt-4">
+                    수분, 당도, 탄소동위원소비까지 모두 검증된<br>1+등급 꿀의 우수성을 직접 확인해보세요.
+                </p>
+            </div>
+            
+            <button onclick="resetToMain()" class="mt-8 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-8 rounded-full text-xl transition-colors">
+                처음으로 돌아가기
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 상태 변수 ---
+    const IDLE_TIMEOUT_MS = 30000; // 30초 무반응 시 초기화
+    const TARGET_DURATION_MS = 13000; // 목표 입바람 누적 시간 (13초)
+    const MIC_THRESHOLD = 15; // 바람 인식 데시벨 임계값 (환경에 따라 조정 필요, 상대값)
+
+    let currentScreen = 'main';
+    let idleTimer = null;
+    let isPlaying = false;
+    
+    // 오디오 관련 변수
+    let audioContext = null;
+    let microphone = null;
+    let analyser = null;
+    let audioDataArray = null;
+    let animationFrameId = null;
+
+    // 게임 진행 상태
+    let accumulatedWindTime = 0; // 누적 바람 시간 (ms)
+    let lastTime = 0; // 프레임 계산용 이전 시간
+
+    // DOM 요소
+    const screens = {
+        main: document.getElementById('screen-main'),
+        play: document.getElementById('screen-play'),
+        result: document.getElementById('screen-result')
+    };
+    const ui = {
+        progressFill: document.getElementById('progress-fill'),
+        playerBee: document.getElementById('player-bee'),
+        windEffect: document.getElementById('wind-effect'),
+        countdown: document.getElementById('countdown-ui'),
+        countdownText: document.getElementById('countdown-text'),
+        instruction: document.getElementById('play-instruction'),
+        micStatus: document.getElementById('mic-status')
+    };
+
+    // --- 유틸리티 및 이벤트 리스너 ---
+
+    // 화면 전환 함수
+    function showScreen(screenName) {
+        Object.values(screens).forEach(s => s.classList.remove('active'));
+        screens[screenName].classList.add('active');
+        currentScreen = screenName;
+        resetIdleTimer();
+    }
+
+    // 전체화면 토글
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.log(`Error attempting to enable fullscreen: ${err.message}`);
+            });
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+        resetIdleTimer();
+    }
+
+    // 사용자 상호작용 감지 (무반응 타이머 리셋용)
+    ['touchstart', 'mousedown'].forEach(evt => 
+        document.addEventListener(evt, resetIdleTimer, { passive: true })
+    );
+
+    // 무반응 타이머 리셋 로직
+    function resetIdleTimer() {
+        if (idleTimer) clearTimeout(idleTimer);
+        // 결과 화면이 아닐 때만 무반응 체크 적용 (또는 항상 적용)
+        idleTimer = setTimeout(() => {
+            console.log("30초 무반응. 메인으로 복귀합니다.");
+            resetToMain();
+        }, IDLE_TIMEOUT_MS);
+    }
+
+    // 처음으로 강제 복귀 (모든 상태 초기화)
+    function resetToMain() {
+        isPlaying = false;
+        stopMic();
+        showScreen('main');
+        
+        // UI 초기화
+        ui.progressFill.style.width = '0%';
+        ui.playerBee.style.left = '10%';
+        ui.playerBee.className = 'absolute left-10 text-8xl z-10 transition-all duration-100 filter drop-shadow-xl';
+        ui.instruction.classList.add('hidden');
+        ui.windEffect.style.opacity = '0';
+        accumulatedWindTime = 0;
+    }
+
+    // 마이크 권한 요청 및 오디오 초기화
+    async function initAudio() {
+        try {
+            ui.micStatus.textContent = "마이크 연결 요청 중...";
+            ui.micStatus.className = "mt-3 text-lg font-bold text-blue-500 animate-pulse";
+            
+            // HTTPS 환경 또는 지원 브라우저 체크
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                throw new Error("마이크를 지원하지 않거나 HTTPS 환경이 아닙니다.");
+            }
+
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+            
+            // 스트림이 정상적으로 들어왔을 때만 노드 연결
+            if (!microphone) {
+                microphone = audioContext.createMediaStreamSource(stream);
+                analyser = audioContext.createAnalyser();
+                
+                analyser.fftSize = 256;
+                const bufferLength = analyser.frequencyBinCount;
+                audioDataArray = new Uint8Array(bufferLength);
+                
+                microphone.connect(analyser);
+            }
+
+            ui.micStatus.textContent = "마이크 연결 완료! 바람을 불어주세요.";
+            ui.micStatus.className = "mt-3 text-lg font-bold text-green-600";
+            return true;
+
+        } catch (err) {
+            console.error("마이크 접근 권한 획득 실패:", err);
+            // 에러 메시지를 화면에 직관적으로 표시
+            if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                ui.micStatus.innerHTML = "마이크 권한이 차단되었습니다.<br>브라우저 설정에서 권한을 허용해주세요.";
+            } else {
+                ui.micStatus.innerHTML = "마이크 연결 실패!<br>(HTTPS 보안 연결 환경인지 확인해주세요)";
+            }
+            ui.micStatus.className = "mt-3 text-center text-lg font-bold text-red-500";
+            return false;
+        }
+    }
+
+    function stopMic() {
+        if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = null;
+        }
+        // 스트림은 유지하되 분석만 중단
+    }
+
+    // 앱 시작 (메인 화면 터치 시)
+    async function startApp() {
+        resetIdleTimer();
+        
+        // 안드로이드/iOS 대응: 사용자 제스처(터치) 직후 즉시 AudioContext 생성
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        showScreen('play');
+        ui.micStatus.textContent = "마이크 준비 중...";
+        ui.micStatus.className = "mt-3 text-lg font-bold text-gray-500";
+        
+        // AudioContext resume (안드로이드에서 suspended 상태로 시작하는 경우 방지)
+        if (audioContext.state === 'suspended') {
+            await audioContext.resume();
+        }
+
+        const hasMic = await initAudio();
+        if (!hasMic) {
+            // 마이크 권한이 없거나 에러가 났을 때 진행 막기
+            ui.countdown.classList.add('hidden');
+            ui.playerBee.classList.add('animate-struggle');
+            return; 
+        }
+
+        startCountdown();
+    }
+
+    // 3초 카운트다운
+    function startCountdown() {
+        ui.countdown.classList.remove('hidden');
+        ui.instruction.classList.add('hidden');
+        ui.playerBee.classList.add('animate-struggle'); // 준비 중 힘들어함
+        
+        let count = 3;
+        ui.countdownText.textContent = count;
+        ui.countdownText.className = "text-9xl font-bold text-white drop-shadow-[0_0_20px_rgba(255,165,0,1)] animate-pop";
+
+        const countInterval = setInterval(() => {
+            count--;
+            if (count > 0) {
+                // 애니메이션 리플로우 트릭
+                ui.countdownText.classList.remove('animate-pop');
+                void ui.countdownText.offsetWidth; 
+                ui.countdownText.textContent = count;
+                ui.countdownText.classList.add('animate-pop');
+            } else if (count === 0) {
+                ui.countdownText.textContent = "시작!";
+                ui.countdownText.classList.remove('animate-pop');
+                void ui.countdownText.offsetWidth; 
+                ui.countdownText.classList.add('animate-pop');
+                ui.countdownText.classList.replace('text-white', 'text-yellow-300');
+            } else {
+                clearInterval(countInterval);
+                ui.countdown.classList.add('hidden');
+                ui.instruction.classList.remove('hidden');
+                startGameLoop();
+            }
+        }, 1000);
+    }
+
+    // 메인 게임(마이크 분석) 루프
+    function startGameLoop() {
+        isPlaying = true;
+        accumulatedWindTime = 0;
+        lastTime = performance.now();
+        ui.micStatus.textContent = "바람을 불어 꿀벌을 밀어주세요!";
+        
+        function loop(currentTime) {
+            if (!isPlaying) return;
+            
+            const deltaTime = currentTime - lastTime;
+            lastTime = currentTime;
+
+            // 타이머 리셋 로직 업데이트 (게임 루프가 돌고 있으므로, 바람 불때만 리셋)
+            // idleTimer 리셋은 하단에서 처리
+
+            // 마이크 데이터 가져오기
+            analyser.getByteFrequencyData(audioDataArray);
+            
+            // 평균 볼륨 계산 (저주파수 대역에 집중하여 바람소리 감지)
+            let sum = 0;
+            // 0~30 인덱스 정도가 저음역대 (바람소리에 반응하기 쉬움)
+            const calcLength = 30; 
+            for(let i = 0; i < calcLength; i++) {
+                sum += audioDataArray[i];
+            }
+            const averageVolume = sum / calcLength;
+
+            // 볼륨이 임계값을 넘는지 체크
+            if (averageVolume > MIC_THRESHOLD) {
+                // 바람 불고 있음
+                accumulatedWindTime += deltaTime;
+                
+                // UI 업데이트: 꿀벌 전진
+                ui.playerBee.classList.remove('animate-struggle');
+                ui.playerBee.classList.add('animate-float');
+                ui.windEffect.style.opacity = '1';
+                
+                // 활동 감지 -> 무반응 타이머 리셋
+                resetIdleTimer();
+            } else {
+                // 바람 멈춤
+                ui.playerBee.classList.add('animate-struggle');
+                ui.playerBee.classList.remove('animate-float');
+                ui.windEffect.style.opacity = '0';
+                
+                // 조금씩 뒤로 밀리는 패널티 (선택사항, 기획상 멈추기만 함)
+                // accumulatedWindTime = Math.max(0, accumulatedWindTime - (deltaTime * 0.5)); 
+            }
+
+            // 진행도 계산 (0 ~ 100%)
+            let progressRatio = accumulatedWindTime / TARGET_DURATION_MS;
+            if (progressRatio > 1) progressRatio = 1;
+            
+            const progressPercent = progressRatio * 100;
+            
+            // 미터기 바 업데이트
+            ui.progressFill.style.width = `${progressPercent}%`;
+            
+            // 꿀벌 위치 업데이트 (10% ~ 80% 구간에서 이동)
+            const startLeft = 10;
+            const endLeft = 80;
+            const currentLeft = startLeft + ((endLeft - startLeft) * progressRatio);
+            ui.playerBee.style.left = `calc(${currentLeft}% - 3rem)`; // 캐릭터 크기 보정
+
+            // 승리 조건 체크
+            if (progressPercent >= 100) {
+                gameWin();
+                return; // 루프 종료
+            }
+
+            animationFrameId = requestAnimationFrame(loop);
+        }
+
+        animationFrameId = requestAnimationFrame(loop);
+    }
+
+    // 성공 처리
+    function gameWin() {
+        isPlaying = false;
+        stopMic();
+        
+        ui.windEffect.style.opacity = '0';
+        ui.micStatus.textContent = "도착!";
+        ui.playerBee.classList.remove('animate-struggle');
+        
+        // 도착 세리머니 잠시 후 결과 화면 이동
+        setTimeout(() => {
+            showScreen('result');
+            
+            // 결과 화면에서 10초 후 자동 메인 복귀 (기획은 7초였으나 텍스트 읽을 시간 고려 10초로 설정)
+            setTimeout(() => {
+                if(currentScreen === 'result') {
+                    resetToMain();
+                }
+            }, 10000);
+            
+        }, 1000);
+    }
+
+    // 초기 실행 시 타이머 시작
+    window.onload = () => {
+        resetIdleTimer();
+    };
+
+</script>
+</body>
+</html>
