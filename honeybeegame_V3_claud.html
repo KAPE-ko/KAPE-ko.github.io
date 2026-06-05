@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>꿀벌의 귀가 도우미</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Jua&family=Black+Han+Sans&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sky-top: #1a6fc4;
+      --sky-bot: #87CEEB;
+      --gold: #FFD700;
+      --amber: #FF8C00;
+      --honey: #FFA500;
+      --cream: #FFF8E7;
+      --green-field: #5DBB63;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      font-family: 'Jua', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+
+    #bg-canvas {
+      position: fixed; inset: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+    }
+
+    #app {
+      position: fixed; inset: 0;
+      z-index: 1;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+
+    /* ── SCREENS ── */
+    .screen {
+      position: absolute; inset: 0;
+      display: none; flex-direction: column;
+      align-items: center; justify-content: center;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+    .screen.active { display: flex; }
+    .screen.visible { opacity: 1; }
+
+    /* ── MAIN SCREEN ── */
+    #screen-main {
+      gap: 0;
+    }
+
+    .title-card {
+      background: rgba(255,255,255,0.92);
+      border: 5px solid var(--gold);
+      border-radius: 32px;
+      padding: 36px 48px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.8);
+      max-width: min(680px, 90vw);
+      position: relative;
+      overflow: hidden;
+    }
+    .title-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent, transparent 20px,
+        rgba(255,215,0,0.05) 20px, rgba(255,215,0,0.05) 40px
+      );
+      pointer-events: none;
+    }
+
+    .game-title {
+      font-family: 'Black Han Sans', sans-serif;
+      font-size: clamp(2.2rem, 6vw, 3.8rem);
+      color: #7B3F00;
+      line-height: 1.1;
+      text-shadow: 2px 4px 0 rgba(0,0,0,0.1);
+      margin-bottom: 6px;
+    }
+    .game-subtitle {
+      font-size: clamp(1rem, 2.8vw, 1.4rem);
+      color: #555;
+      line-height: 1.6;
+      margin-bottom: 0;
+    }
+    .game-subtitle .highlight {
+      color: #1a6fc4;
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+
+    .bee-hero {
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+      margin: 20px 0;
+      height: 140px;
+    }
+    .bee-hero .bee-big { font-size: 7rem; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.2)); }
+    .bee-hero .sweat { position: absolute; top: 5px; right: 5px; font-size: 2rem; animation: sweat-drip 1.5s ease-in-out infinite; }
+    .bee-hero .honey-jar { position: absolute; bottom: -10px; right: -10px; font-size: 4.5rem; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15)); }
+
+    @keyframes sweat-drip {
+      0%,100% { transform: translateY(0); opacity:1; }
+      50% { transform: translateY(8px); opacity:0.6; }
+    }
+    @keyframes bee-struggle {
+      0%   { transform: rotate(-6deg) translateY(2px); }
+      25%  { transform: rotate(4deg) translateY(-4px); }
+      50%  { transform: rotate(-6deg) translateY(2px); }
+      75%  { transform: rotate(4deg) translateY(-4px); }
+      100% { transform: rotate(-6deg) translateY(2px); }
+    }
+    @keyframes bee-fly {
+      0%   { transform: translateY(0) rotate(-3deg); }
+      50%  { transform: translateY(-14px) rotate(3deg); }
+      100% { transform: translateY(0) rotate(-3deg); }
+    }
+
+    .struggling { animation: bee-struggle 0.45s ease-in-out infinite; }
+    .flying     { animation: bee-fly 0.8s ease-in-out infinite; }
+
+    .tap-hint {
+      background: var(--amber);
+      color: white;
+      font-family: 'Black Han Sans', sans-serif;
+      font-size: clamp(1.1rem, 3vw, 1.5rem);
+      padding: 14px 36px;
+      border-radius: 60px;
+      box-shadow: 0 6px 20px rgba(255,140,0,0.45);
+      border: 3px solid rgba(255,255,255,0.6);
+      animation: pulse-btn 1.8s ease-in-out infinite;
+      cursor: pointer;
+    }
+    @keyframes pulse-btn {
+      0%,100% { transform: scale(1); box-shadow: 0 6px 20px rgba(255,140,0,0.45); }
+      50%  { transform: scale(1.06); box-shadow: 0 10px 30px rgba(255,140,0,0.65); }
+    }
+
+    /* Difficulty badge on main */
+    .diff-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(0,0,0,0.08);
+      border-radius: 30px;
+      padding: 5px 14px;
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 10px;
+    }
+    .diff-badge .dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: #3b82f6;
+    }
+
+    /* ── PLAY SCREEN ── */
+    #screen-play { justify-content: flex-start; padding-top: 0; }
+
+    /* Top HUD */
+    .hud {
+      width: 100%; padding: 14px 20px 10px;
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(8px);
+      border-bottom: 3px solid rgba(255,215,0,0.6);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      z-index: 10;
+    }
+    .hud-row1 {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 8px;
+    }
+    .hud-label {
+      font-size: clamp(0.9rem, 2.5vw, 1.15rem);
+      font-weight: bold; color: #7B3F00;
+    }
+    .hud-label span { font-size: 1.3em; }
+
+    .progress-track {
+      width: 100%;
+      height: 28px;
+      background: #e0e0e0;
+      border-radius: 30px;
+      overflow: hidden;
+      border: 2px solid #ccc;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.12);
+      position: relative;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #FFD700, #FF8C00 60%, #FF6B35);
+      border-radius: 30px;
+      transition: width 0.1s linear;
+      position: relative;
+      overflow: hidden;
+    }
+    .progress-bar::after {
+      content: '';
+      position: absolute; top: 0; left: -60px; right: 0; bottom: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+      animation: shimmer 1.5s linear infinite;
+      width: 60px;
+    }
+    @keyframes shimmer {
+      from { left: -60px; } to { left: 100%; }
+    }
+
+    /* Bee emoji on progress */
+    .progress-bee {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      font-size: 1.4rem;
+      transition: left 0.1s linear;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .hud-status {
+      text-align: center; margin-top: 6px;
+      font-size: clamp(0.85rem, 2.2vw, 1rem);
+      font-weight: bold; color: #555;
+    }
+    .hud-status.wind-on { color: #059669; }
+    .hud-status.wind-off { color: #6b7280; }
+
+    /* Combo display */
+    .combo-display {
+      position: absolute;
+      top: 50%;
+      right: 20px;
+      transform: translateY(-50%);
+      text-align: center;
+      pointer-events: none;
+      z-index: 20;
+    }
+    .combo-number {
+      font-family: 'Black Han Sans', sans-serif;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      color: var(--gold);
+      text-shadow: 0 0 20px rgba(255,215,0,0.8), 2px 2px 0 rgba(0,0,0,0.3);
+      line-height: 1;
+      opacity: 0;
+      transition: opacity 0.3s, transform 0.3s;
+    }
+    .combo-number.active { opacity: 1; transform: scale(1.1); }
+    .combo-label {
+      font-size: 0.75rem;
+      color: rgba(255,215,0,0.9);
+      text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
+      letter-spacing: 2px;
+    }
+
+    /* Game field */
+    .game-field {
+      flex: 1; width: 100%;
+      position: relative;
+      overflow: hidden;
+      display: flex; align-items: center;
+    }
+
+    /* Ground */
+    .ground {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 70px;
+      background: linear-gradient(180deg, #5DBB63 0%, #3d9e45 100%);
+      border-top: 4px solid #2d7e35;
+      z-index: 2;
+    }
+    .ground::before {
+      content: '🌸🌼🌻🌷🌸🌼🌻🌷🌸🌼🌻🌷🌸🌼🌻';
+      position: absolute; top: -18px; left: 0; right: 0;
+      font-size: 1.5rem;
+      letter-spacing: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    /* Hive / destination */
+    .hive-dest {
+      position: absolute; right: 24px; bottom: 54px;
+      font-size: clamp(4rem, 10vw, 6rem);
+      filter: drop-shadow(0 8px 20px rgba(0,0,0,0.25));
+      z-index: 3;
+      transition: transform 0.3s;
+    }
+    .hive-dest.glow {
+      animation: hive-glow 0.6s ease-in-out 3;
+    }
+    @keyframes hive-glow {
+      0%,100% { filter: drop-shadow(0 8px 20px rgba(0,0,0,0.25)); }
+      50%     { filter: drop-shadow(0 0 40px rgba(255,215,0,1)) drop-shadow(0 8px 20px rgba(0,0,0,0.25)); }
+    }
+
+    /* Source flower */
+    .source-flower {
+      position: absolute; left: 20px; bottom: 54px;
+      font-size: clamp(3rem, 8vw, 5rem);
+      filter: drop-shadow(0 4px 10px rgba(0,0,0,0.15));
+      z-index: 3;
+    }
+
+    /* Player bee */
+    #player-bee {
+      position: absolute;
+      bottom: 80px;
+      left: 10%;
+      font-size: clamp(3.5rem, 9vw, 5.5rem);
+      z-index: 5;
+      transition: left 0.12s linear, bottom 0.2s ease;
+      filter: drop-shadow(0 6px 14px rgba(0,0,0,0.25));
+      line-height: 1;
+    }
+    #player-bee .bee-jar {
+      position: absolute; bottom: -12px; right: -14px;
+      font-size: 0.55em;
+    }
+
+    /* Wind particles canvas */
+    #particle-canvas {
+      position: absolute; inset: 0;
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    /* Instruction bubble */
+    .instruction-bubble {
+      position: absolute;
+      bottom: 90px;
+      left: 50%; transform: translateX(-50%);
+      background: rgba(255,255,255,0.95);
+      border-radius: 24px;
+      padding: 14px 28px;
+      font-size: clamp(1rem, 2.8vw, 1.35rem);
+      font-weight: bold;
+      border: 4px solid #3b82f6;
+      color: #1d4ed8;
+      box-shadow: 0 8px 24px rgba(59,130,246,0.3);
+      text-align: center;
+      white-space: nowrap;
+      z-index: 10;
+      animation: bubble-pulse 2s ease-in-out infinite;
+      display: none;
+    }
+    @keyframes bubble-pulse {
+      0%,100% { box-shadow: 0 8px 24px rgba(59,130,246,0.3); }
+      50%  { box-shadow: 0 8px 36px rgba(59,130,246,0.6); }
+    }
+
+    /* Countdown overlay */
+    #countdown-ui {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.35);
+      backdrop-filter: blur(4px);
+      z-index: 50;
+    }
+    .countdown-ring {
+      position: relative;
+      width: 200px; height: 200px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .countdown-ring svg {
+      position: absolute; top: 0; left: 0;
+      transform: rotate(-90deg);
+    }
+    #countdown-circle { transition: stroke-dashoffset 1s linear; }
+    #countdown-num {
+      font-family: 'Black Han Sans', sans-serif;
+      font-size: 6rem;
+      color: white;
+      text-shadow: 0 0 30px rgba(255,215,0,1), 0 4px 0 rgba(0,0,0,0.3);
+      line-height: 1;
+      position: relative; z-index: 1;
+    }
+
+    /* ── RESULT SCREEN ── */
+    #screen-result { gap: 0; }
+
+    .result-card {
+      background: rgba(255,255,255,0.97);
+      border: 6px solid var(--gold);
+      border-radius: 36px;
+      padding: clamp(24px, 5vw, 48px) clamp(28px, 6vw, 60px);
+      text-align: center;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.25);
+      max-width: min(720px, 92vw);
+      position: relative;
+      overflow: hidden;
+    }
+    .result-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 8px;
+      background: linear-gradient(90deg, #FFD700, #FF8C00, #FFD700);
+    }
+
+    .result-bee-row {
+      display: flex; align-items: flex-end; justify-content: center;
+      gap: clamp(8px, 2vw, 20px);
+      margin-bottom: 16px;
+    }
+    .result-bee-row .r-bee { font-size: clamp(3.5rem, 9vw, 5.5rem); animation: bee-fly 1s ease-in-out infinite; }
+    .result-bee-row .r-heart { font-size: clamp(2rem, 5vw, 3rem); padding-bottom: 12px; animation: heart-beat 1.2s ease-in-out infinite; }
+    .result-bee-row .r-honey {
+      font-size: clamp(4rem, 10vw, 6.5rem);
+      position: relative;
+      filter: drop-shadow(0 6px 14px rgba(255,165,0,0.4));
+      animation: honey-shine 2s ease-in-out infinite;
+    }
+    @keyframes heart-beat {
+      0%,100% { transform: scale(1); }
+      50% { transform: scale(1.25); }
+    }
+    @keyframes honey-shine {
+      0%,100% { filter: drop-shadow(0 6px 14px rgba(255,165,0,0.4)); }
+      50%  { filter: drop-shadow(0 6px 30px rgba(255,165,0,0.9)) brightness(1.2); }
+    }
+
+    .grade-badge {
+      position: absolute; top: -8px; right: -8px;
+      background: #DC2626; color: white;
+      font-family: 'Black Han Sans', sans-serif;
+      font-size: clamp(0.85rem, 2vw, 1.1rem);
+      padding: 6px 12px;
+      border-radius: 30px;
+      border: 3px solid white;
+      box-shadow: 0 4px 12px rgba(220,38,38,0.4);
+      transform: rotate(12deg);
+    }
+
+    .result-title {
+      font-family: 'Black Han Sans', sans-serif;
+      font-size: clamp(1.5rem, 4.5vw, 2.4rem);
+      color: #15803d;
+      line-height: 1.3;
+      margin-bottom: 16px;
+    }
+
+    .result-info {
+      background: #FFFBEB;
+      border: 2px solid #FDE68A;
+      border-radius: 18px;
+      padding: clamp(12px, 3vw, 22px) clamp(16px, 4vw, 28px);
+      margin-bottom: 16px;
+    }
+    .result-info p {
+      font-size: clamp(0.95rem, 2.5vw, 1.25rem);
+      color: #374151;
+      line-height: 1.65;
+    }
+    .result-info .org { color: #1d4ed8; font-weight: bold; }
+    .result-info .grade-text {
+      color: #DC2626; font-family: 'Black Han Sans', sans-serif;
+      font-size: 1.3em;
+      background: #FEF9C3; padding: 2px 8px; border-radius: 6px;
+    }
+    .result-info .detail {
+      font-size: 0.88em; color: #6b7280;
+      margin-top: 10px; padding-top: 10px;
+      border-top: 1px solid #FDE68A;
+    }
+
+    /* Score row */
+    .score-row {
+      display: flex; gap: 12px; justify-content: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .score-chip {
+      background: rgba(255,215,0,0.15);
+      border: 2px solid rgba(255,215,0,0.5);
+      border-radius: 50px;
+      padding: 8px 18px;
+      font-size: clamp(0.85rem, 2vw, 1rem);
+      color: #7B3F00;
+      font-weight: bold;
+    }
+    .score-chip span { font-size: 1.2em; }
+
+    .btn-home {
+      background: #374151; color: white;
+      font-family: 'Jua', sans-serif;
+      font-size: clamp(1rem, 2.5vw, 1.2rem);
+      padding: 12px 32px;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-home:active { transform: scale(0.96); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+
+    /* Confetti canvas */
+    #confetti-canvas {
+      position: absolute; inset: 0;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── FULLSCREEN BTN ── */
+    #fullscreen-btn {
+      position: fixed; bottom: 18px; right: 18px; z-index: 200;
+      background: rgba(255,255,255,0.8);
+      border: none; border-radius: 50%;
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      color: #374151;
+      transition: background 0.2s;
+    }
+    #fullscreen-btn:hover { background: white; }
+
+    /* ── SETTINGS MODAL ── */
+    #settings-modal {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 300;
+      display: none;
+      align-items: center; justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+    #settings-modal.open { display: flex; }
+
+    .settings-card {
+      background: white;
+      border-radius: 28px;
+      padding: 32px 28px;
+      width: min(340px, 92vw);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+    }
+    .settings-card h3 {
+      font-family: 'Black Han Sans', sans-serif;
+      font-size: 1.4rem;
+      color: #1f2937;
+      text-align: center;
+      margin-bottom: 22px;
+    }
+    .setting-group {
+      margin-bottom: 20px;
+    }
+    .setting-group label {
+      display: block;
+      font-weight: bold; color: #374151;
+      margin-bottom: 8px; font-size: 0.95rem;
+    }
+    .setting-group input[type=range] {
+      width: 100%; accent-color: #3b82f6;
+    }
+    .setting-group .val { color: #3b82f6; font-size: 1.1rem; }
+
+    .toggle-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px;
+      background: #f9fafb;
+      border-radius: 16px;
+      border: 2px solid #e5e7eb;
+    }
+    .toggle-info p { font-weight: bold; color: #1f2937; font-size: 0.95rem; }
+    .toggle-info small { color: #6b7280; font-size: 0.8rem; }
+
+    .toggle-switch { position: relative; display: inline-block; width: 52px; height: 26px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; inset: 0;
+      background: #d1d5db; border-radius: 26px;
+      transition: background 0.3s;
+      cursor: pointer;
+    }
+    .slider::before {
+      content: ''; position: absolute;
+      width: 20px; height: 20px; left: 3px; top: 3px;
+      background: white; border-radius: 50%;
+      transition: transform 0.3s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    input:checked + .slider { background: #8b5cf6; }
+    input:checked + .slider::before { transform: translateX(26px); }
+
+    #diff-status { margin-top: 8px; font-size: 0.82rem; font-weight: bold; text-align: center; color: #9ca3af; }
+
+    .btn-save {
+      width: 100%; margin-top: 20px;
+      background: #1f2937; color: white;
+      border: none; border-radius: 14px;
+      padding: 14px; font-family: 'Jua', sans-serif;
+      font-size: 1.05rem; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-save:hover { background: #111827; }
+
+    /* ── POP ANIM ── */
+    @keyframes pop-in {
+      0%  { transform: scale(0.4) rotate(-10deg); opacity: 0; }
+      70% { transform: scale(1.15) rotate(3deg); opacity: 1; }
+      100%{ transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+    .pop-anim { animation: pop-in 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+
+    /* Floating score text */
+    .float-text {
+      position: absolute;
+      font-family: 'Black Han Sans', sans-serif;
+      font-size: 1.6rem;
+      color: #FFD700;
+      text-shadow: 0 2px 0 rgba(0,0,0,0.4), 0 0 12px rgba(255,215,0,0.8);
+      pointer-events: none;
+      z-index: 20;
+      animation: float-up 1.2s ease-out forwards;
+    }
+    @keyframes float-up {
+      0%   { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-70px) scale(0.7); }
+    }
+
+    /* Difficulty ribbon */
+    .diff-ribbon {
+      position: absolute; top: 0; left: 0;
+      padding: 6px 20px 6px 12px;
+      border-radius: 0 0 20px 0;
+      font-size: 0.85rem; font-weight: bold;
+      color: white;
+      z-index: 15;
+    }
+
+    /* Win flash */
+    @keyframes win-flash {
+      0%  { background: rgba(255,215,0,0); }
+      30% { background: rgba(255,215,0,0.4); }
+      100%{ background: rgba(255,215,0,0); }
+    }
+    .win-flash { animation: win-flash 0.8s ease-out; }
+
+    /* Speed burst indicator */
+    .speed-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 3px solid rgba(255,215,0,0.7);
+      animation: expand-ring 0.6s ease-out forwards;
+      pointer-events: none;
+      z-index: 15;
+    }
+    @keyframes expand-ring {
+      0%   { opacity: 1; transform: scale(0.3); }
+      100% { opacity: 0; transform: scale(2.5); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Sky & background canvas -->
+<canvas id="bg-canvas"></canvas>
+
+<div id="app">
+
+  <!-- ══ MAIN SCREEN ══ -->
+  <div id="screen-main" class="screen">
+    <div class="title-card">
+      <div class="game-title">🍯 꿀벌의 귀가 도우미</div>
+      <div class="game-subtitle">
+        꿀을 잔뜩 딴 꿀벌이 지쳐서 집에 못 가고 있어요!<br>
+        <span class="highlight">화면을 터치하고 입김을 불어 도와주세요! 🌬️</span>
+      </div>
+
+      <div class="bee-hero">
+        <div class="bee-big struggling" id="main-bee">🐝</div>
+        <div class="sweat">💧</div>
+        <div class="honey-jar">🍯</div>
+      </div>
+
+      <div id="main-diff-badge" class="diff-badge">
+        <div class="dot" id="badge-dot"></div>
+        <span id="badge-text">기본 난이도 (13초)</span>
+      </div>
+    </div>
+
+    <div class="tap-hint" id="tap-hint" style="margin-top:22px;">
+      화면을 터치하여 시작하기 👆
+    </div>
+  </div>
+
+  <!-- ══ PLAY SCREEN ══ -->
+  <div id="screen-play" class="screen">
+
+    <!-- Difficulty ribbon -->
+    <div class="diff-ribbon" id="diff-ribbon">🌿 기본</div>
+
+    <!-- HUD -->
+    <div class="hud">
+      <div class="hud-row1">
+        <div class="hud-label"><span>🌻</span> 출발</div>
+        <div class="hud-label" id="hud-center-label">집까지 날아가는 중!</div>
+        <div class="hud-label"><span>🛖</span> 벌통</div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-bar" id="progress-bar"></div>
+        <div class="progress-bee" id="progress-bee">🐝</div>
+      </div>
+      <div class="hud-status wind-off" id="hud-status">마이크 연결 대기중…</div>
+    </div>
+
+    <!-- Countdown -->
+    <div id="countdown-ui">
+      <div class="countdown-ring">
+        <svg width="200" height="200" viewBox="0 0 200 200">
+          <circle cx="100" cy="100" r="88" fill="none"
+            stroke="rgba(255,255,255,0.2)" stroke-width="10"/>
+          <circle id="countdown-circle" cx="100" cy="100" r="88" fill="none"
+            stroke="#FFD700" stroke-width="10"
+            stroke-dasharray="553" stroke-dashoffset="0"
+            stroke-linecap="round"/>
+        </svg>
+        <div id="countdown-num">3</div>
+      </div>
+    </div>
+
+    <!-- Game field -->
+    <div class="game-field" id="game-field">
+      <canvas id="particle-canvas"></canvas>
+
+      <div class="source-flower">🌻</div>
+
+      <div id="player-bee" class="struggling">
+        🐝<span class="bee-jar">🍯</span>
+      </div>
+
+      <div class="hive-dest" id="hive-dest">🛖</div>
+
+      <div class="ground"></div>
+
+      <!-- Instruction bubble -->
+      <div class="instruction-bubble" id="instruction-bubble">
+        태블릿 마이크를 향해 '후~' 하고 바람을 불어주세요! 🌬️
+      </div>
+    </div>
+
+    <!-- Combo display -->
+    <div class="combo-display" id="combo-display">
+      <div class="combo-number" id="combo-number">x1</div>
+      <div class="combo-label">COMBO</div>
+    </div>
+
+  </div>
+
+  <!-- ══ RESULT SCREEN ══ -->
+  <div id="screen-result" class="screen">
+    <canvas id="confetti-canvas"></canvas>
+
+    <div class="result-card">
+      <div class="result-bee-row">
+        <div class="r-bee">🐝</div>
+        <div class="r-heart">❤️</div>
+        <div style="position:relative">
+          <div class="r-honey">🍯</div>
+          <div class="grade-badge">1+등급</div>
+        </div>
+      </div>
+
+      <div class="result-title">
+        관람객님 덕분에<br>무사히 집에 도착했어요!<br>고맙습니다! 🎉
+      </div>
+
+      <div class="score-row" id="score-row">
+        <div class="score-chip">⏱️ <span id="res-time">0.0</span>초</div>
+        <div class="score-chip">🔥 최고 <span id="res-combo">x1</span> 콤보</div>
+        <div class="score-chip" id="res-diff-chip">🌿 기본</div>
+      </div>
+
+      <div class="result-info">
+        <p>
+          꿀벌이 열심히 모아온 꿀은<br>
+          <span class="org">축산물품질평가원</span>의 깐깐한 심사를 거쳐<br>
+          최상급 <span class="grade-text">1+등급 꿀</span>로 출하되었답니다!
+        </p>
+        <p class="detail">
+          수분, 당도, 탄소동위원소비까지 모두 검증된<br>1+등급 꿀의 우수성을 직접 확인해보세요.
+        </p>
+      </div>
+
+      <button class="btn-home" onclick="resetToMain()">처음으로 돌아가기</button>
+    </div>
+  </div>
+
+  <!-- ══ SETTINGS MODAL ══ -->
+  <div id="settings-modal">
+    <div class="settings-card" onclick="event.stopPropagation()">
+      <h3>⚙️ 관리자 설정</h3>
+
+      <div class="setting-group">
+        <label>마이크 감도 (낮을수록 민감)</label>
+        <input type="range" id="mic-sensitivity" min="1" max="200" value="15">
+        <p style="font-size:0.85rem;color:#6b7280;margin-top:4px;">
+          현재 임계값: <span class="val" id="sensitivity-value">15</span>
+        </p>
+      </div>
+
+      <div class="setting-group">
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <p>🎲 랜덤 호흡 난이도</p>
+            <small>켜면 매 게임 난이도가 무작위로 변경</small>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="random-difficulty-toggle">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div id="diff-status">현재: 기본 (13초 고정)</div>
+      </div>
+
+      <button class="btn-save" onclick="closeSettings()">저장 및 닫기</button>
+    </div>
+  </div>
+
+  <!-- Fullscreen button -->
+  <button id="fullscreen-btn" onclick="toggleFullScreen()">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+      <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+    </svg>
+  </button>
+
+</div><!-- #app -->
+
+<script>
+/* ═══════════════════════════════════════════
+   BACKGROUND SKY CANVAS
+═══════════════════════════════════════════ */
+(function() {
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, clouds = [], sun = { x:0, y:0 };
+  const CLOUD_COUNT = 6;
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    sun.x = W * 0.82; sun.y = H * 0.12;
+    initClouds();
+  }
+
+  function initClouds() {
+    clouds = [];
+    for (let i = 0; i < CLOUD_COUNT; i++) {
+      clouds.push({
+        x: Math.random() * W,
+        y: Math.random() * H * 0.45,
+        w: 80 + Math.random() * 120,
+        h: 30 + Math.random() * 30,
+        speed: 0.12 + Math.random() * 0.18,
+        alpha: 0.65 + Math.random() * 0.25
+      });
+    }
+  }
+
+  function drawSky() {
+    const grd = ctx.createLinearGradient(0, 0, 0, H);
+    grd.addColorStop(0, '#1a6fc4');
+    grd.addColorStop(0.5, '#87CEEB');
+    grd.addColorStop(1, '#c8e8f5');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  function drawSun() {
+    // Glow
+    const g = ctx.createRadialGradient(sun.x, sun.y, 0, sun.x, sun.y, 80);
+    g.addColorStop(0, 'rgba(255,230,80,0.6)');
+    g.addColorStop(1, 'rgba(255,230,80,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(sun.x, sun.y, 80, 0, Math.PI*2);
+    ctx.fill();
+    // Core
+    ctx.fillStyle = '#FFE040';
+    ctx.beginPath(); ctx.arc(sun.x, sun.y, 36, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#FFF8C0';
+    ctx.beginPath(); ctx.arc(sun.x - 8, sun.y - 8, 14, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  function drawCloud(c) {
+    ctx.save();
+    ctx.globalAlpha = c.alpha;
+    ctx.fillStyle = 'white';
+    const rx = c.x, ry = c.y;
+    // Body
+    ctx.beginPath();
+    ctx.ellipse(rx, ry, c.w/2, c.h/2, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(rx - c.w*0.22, ry + c.h*0.1, c.w*0.32, c.h*0.45, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(rx + c.w*0.22, ry + c.h*0.05, c.w*0.28, c.h*0.4, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(rx, ry - c.h*0.25, c.w*0.36, c.h*0.5, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  let t = 0;
+  function tick() {
+    t++;
+    drawSky();
+    drawSun();
+    clouds.forEach(c => {
+      c.x += c.speed;
+      if (c.x - c.w/2 > W) c.x = -c.w/2;
+      drawCloud(c);
+    });
+    requestAnimationFrame(tick);
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+  tick();
+})();
+
+/* ═══════════════════════════════════════════
+   PARTICLE SYSTEM
+═══════════════════════════════════════════ */
+const pCanvas = document.getElementById('particle-canvas');
+const pCtx = pCanvas.getContext('2d');
+let particles = [];
+let particleActive = false;
+
+function resizeParticleCanvas() {
+  const field = document.getElementById('game-field');
+  pCanvas.width = field.offsetWidth;
+  pCanvas.height = field.offsetHeight;
+}
+
+class Particle {
+  constructor(beeX, beeY) {
+    this.x = beeX - 10 + (Math.random() - 0.5) * 30;
+    this.y = beeY + (Math.random() - 0.5) * 40;
+    this.vx = -(2 + Math.random() * 4);
+    this.vy = (Math.random() - 0.5) * 1.5;
+    this.alpha = 0.7 + Math.random() * 0.3;
+    this.size = 4 + Math.random() * 12;
+    this.life = 1;
+    this.decay = 0.025 + Math.random() * 0.03;
+    const hue = 190 + Math.random() * 30;
+    this.color = `hsla(${hue},80%,75%,`;
+  }
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    this.life -= this.decay;
+    this.vx *= 0.96;
+    this.size *= 0.98;
+  }
+  draw() {
+    pCtx.beginPath();
+    pCtx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+    pCtx.fillStyle = this.color + (this.life * this.alpha) + ')';
+    pCtx.fill();
+  }
+}
+
+// Honey sparkle particles (when near hive)
+class SparkleParticle {
+  constructor(x, y) {
+    this.x = x; this.y = y;
+    const angle = Math.random() * Math.PI * 2;
+    const spd = 1 + Math.random() * 3;
+    this.vx = Math.cos(angle) * spd;
+    this.vy = Math.sin(angle) * spd - 2;
+    this.life = 1;
+    this.size = 3 + Math.random() * 6;
+    this.decay = 0.04 + Math.random() * 0.03;
+  }
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    this.vy += 0.1;
+    this.life -= this.decay;
+    this.size *= 0.97;
+  }
+  draw() {
+    pCtx.beginPath();
+    pCtx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+    pCtx.fillStyle = `rgba(255,215,0,${this.life})`;
+    pCtx.fill();
+    // Cross sparkle
+    pCtx.strokeStyle = `rgba(255,255,150,${this.life * 0.7})`;
+    pCtx.lineWidth = 1.5;
+    pCtx.beginPath();
+    pCtx.moveTo(this.x - this.size, this.y);
+    pCtx.lineTo(this.x + this.size, this.y);
+    pCtx.moveTo(this.x, this.y - this.size);
+    pCtx.lineTo(this.x, this.y + this.size);
+    pCtx.stroke();
+  }
+}
+
+let sparkles = [];
+
+function particleLoop() {
+  pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+
+  if (particleActive) {
+    const bee = document.getElementById('player-bee');
+    const field = document.getElementById('game-field');
+    const bRect = bee.getBoundingClientRect();
+    const fRect = field.getBoundingClientRect();
+    const bx = bRect.left - fRect.left + bRect.width * 0.2;
+    const by = bRect.top - fRect.top + bRect.height * 0.5;
+    for (let i = 0; i < 3; i++) particles.push(new Particle(bx, by));
+  }
+
+  particles = particles.filter(p => p.life > 0);
+  particles.forEach(p => { p.update(); p.draw(); });
+
+  sparkles = sparkles.filter(s => s.life > 0);
+  sparkles.forEach(s => { s.update(); s.draw(); });
+
+  requestAnimationFrame(particleLoop);
+}
+
+function spawnSparkles(x, y, count = 12) {
+  for (let i = 0; i < count; i++) sparkles.push(new SparkleParticle(x, y));
+}
+
+/* ═══════════════════════════════════════════
+   CONFETTI SYSTEM (Result screen)
+═══════════════════════════════════════════ */
+let confettiPieces = [];
+let confettiRunning = false;
+
+class Confetti {
+  constructor() {
+    const canvas = document.getElementById('confetti-canvas');
+    this.x = Math.random() * canvas.width;
+    this.y = -20;
+    this.w = 8 + Math.random() * 10;
+    this.h = 5 + Math.random() * 6;
+    this.vx = (Math.random() - 0.5) * 3;
+    this.vy = 2 + Math.random() * 4;
+    this.rotation = Math.random() * Math.PI * 2;
+    this.rotSpeed = (Math.random() - 0.5) * 0.2;
+    const colors = ['#FFD700','#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#FFEAA7','#DDA0DD','#98FB98'];
+    this.color = colors[Math.floor(Math.random() * colors.length)];
+    this.life = 1;
+  }
+  update(H) {
+    this.x += this.vx + Math.sin(this.y * 0.02) * 0.5;
+    this.y += this.vy;
+    this.rotation += this.rotSpeed;
+    if (this.y > H) this.life = 0;
+  }
+  draw(ctx) {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rotation);
+    ctx.fillStyle = this.color;
+    ctx.fillRect(-this.w/2, -this.h/2, this.w, this.h);
+    ctx.restore();
+  }
+}
+
+function startConfetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width; canvas.height = rect.height;
+  confettiPieces = [];
+  confettiRunning = true;
+  let spawn = 0;
+
+  function loop() {
+    if (!confettiRunning) { ctx.clearRect(0,0,canvas.width,canvas.height); return; }
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    spawn++;
+    if (spawn % 2 === 0) {
+      for (let i=0; i<4; i++) confettiPieces.push(new Confetti());
+    }
+    confettiPieces = confettiPieces.filter(c => c.life > 0);
+    confettiPieces.forEach(c => { c.update(canvas.height); c.draw(ctx); });
+    requestAnimationFrame(loop);
+  }
+  loop();
+  setTimeout(() => { confettiRunning = false; }, 4000);
+}
+
+/* ═══════════════════════════════════════════
+   GAME STATE
+═══════════════════════════════════════════ */
+const IDLE_TIMEOUT_MS = 30000;
+let TARGET_DURATION_MS = 13000;
+let MIC_THRESHOLD = 15;
+let isRandomDifficulty = false;
+
+const DIFFICULTIES = [
+  { duration: 13000, label: '기본', emoji:'🌿',
+    borderColor: '#3b82f6', bgColor:'#EFF6FF', textColor:'#1d4ed8',
+    ribbonBg: 'rgba(59,130,246,0.85)',
+    instruction: "태블릿 마이크를 향해 '후~' 하고 바람을 불어주세요! 🌬️",
+    badgeDot: '#3b82f6', badgeText:'기본 난이도 (13초)' },
+  { duration: 16000, label: '어려움', emoji:'💦',
+    borderColor: '#f97316', bgColor:'#FFF7ED', textColor:'#c2410c',
+    ribbonBg: 'rgba(249,115,22,0.85)',
+    instruction: "집이 멀어요! 평소보다 더 길게 불어주세요! 💦",
+    badgeDot: '#f97316', badgeText:'어려움 (16초)' },
+  { duration: 20000, label: '매우 어려움', emoji:'🍯',
+    borderColor: '#8b5cf6', bgColor:'#F5F3FF', textColor:'#6d28d9',
+    ribbonBg: 'rgba(139,92,246,0.85)',
+    instruction: "꿀이 꽉 차서 무거워요! 🍯 아주 길고 세게 불어주세요!! 💪",
+    badgeDot: '#8b5cf6', badgeText:'매우 어려움 (20초)' }
+];
+let currentDifficulty = DIFFICULTIES[0];
+
+let currentScreen = 'main';
+let idleTimer = null;
+let isPlaying = false;
+let audioContext = null, microphone = null, analyser = null, audioDataArray = null;
+let animationFrameId = null;
+let accumulatedWindTime = 0;
+let lastTime = 0;
+let isWindBlowing = false;
+let comboCount = 0;
+let maxCombo = 0;
+let windStartTime = 0;
+let gameStartTime = 0;
+
+// Hidden tap counters
+let topLeftTapCount = 0, topLeftLastTap = 0;
+let topRightTapCount = 0, topRightLastTap = 0;
+const TAP_TIMEOUT = 500, TAP_AREA_SIZE = 120;
+
+const screens = {
+  main: document.getElementById('screen-main'),
+  play: document.getElementById('screen-play'),
+  result: document.getElementById('screen-result')
+};
+const ui = {
+  progressBar: document.getElementById('progress-bar'),
+  progressBee: document.getElementById('progress-bee'),
+  playerBee: document.getElementById('player-bee'),
+  countdown: document.getElementById('countdown-ui'),
+  countdownNum: document.getElementById('countdown-num'),
+  countdownCircle: document.getElementById('countdown-circle'),
+  instruction: document.getElementById('instruction-bubble'),
+  hudStatus: document.getElementById('hud-status'),
+  comboNum: document.getElementById('combo-number'),
+  gameField: document.getElementById('game-field'),
+  hiveDest: document.getElementById('hive-dest'),
+  diffRibbon: document.getElementById('diff-ribbon'),
+  hudCenterLabel: document.getElementById('hud-center-label'),
+};
+
+/* ── Screen transitions ── */
+function showScreen(name) {
+  Object.values(screens).forEach(s => {
+    s.classList.remove('active','visible');
+  });
+  const target = screens[name];
+  target.classList.add('active');
+  setTimeout(() => target.classList.add('visible'), 20);
+  currentScreen = name;
+  resetIdleTimer();
+}
+
+/* ── Idle timer ── */
+function resetIdleTimer() {
+  if (idleTimer) clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => { resetToMain(); }, IDLE_TIMEOUT_MS);
+}
+
+/* ── Fullscreen ── */
+function toggleFullScreen() {
+  const el = document.documentElement;
+  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+    (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen)
+      ?.call(el)?.catch(() => {});
+  } else {
+    (document.exitFullscreen || document.webkitExitFullscreen)?.call(document);
+  }
+  resetIdleTimer();
+}
+
+/* ── Settings ── */
+function openSettings() {
+  document.getElementById('settings-modal').classList.add('open');
+  if (idleTimer) clearTimeout(idleTimer);
+}
+function closeSettings() {
+  document.getElementById('settings-modal').classList.remove('open');
+  resetIdleTimer();
+}
+
+document.getElementById('mic-sensitivity').addEventListener('input', e => {
+  MIC_THRESHOLD = parseInt(e.target.value);
+  document.getElementById('sensitivity-value').textContent = MIC_THRESHOLD;
+});
+
+document.getElementById('random-difficulty-toggle').addEventListener('change', e => {
+  isRandomDifficulty = e.target.checked;
+  const st = document.getElementById('diff-status');
+  st.textContent = isRandomDifficulty ? '현재: 랜덤 (13초 / 16초 / 20초)' : '현재: 기본 (13초 고정)';
+  st.style.color = isRandomDifficulty ? '#8b5cf6' : '#9ca3af';
+});
+
+/* ── Hidden taps ── */
+function handleHiddenTaps(x, y) {
+  const now = Date.now(), W = window.innerWidth;
+  if (x < TAP_AREA_SIZE && y < TAP_AREA_SIZE) {
+    if (now - topLeftLastTap > TAP_TIMEOUT) topLeftTapCount = 0;
+    topLeftTapCount++; topLeftLastTap = now;
+    if (topLeftTapCount >= 5) { toggleFullScreen(); topLeftTapCount = 0; }
+  } else topLeftTapCount = 0;
+
+  if (x > W - TAP_AREA_SIZE && y < TAP_AREA_SIZE) {
+    if (now - topRightLastTap > TAP_TIMEOUT) topRightTapCount = 0;
+    topRightTapCount++; topRightLastTap = now;
+    if (topRightTapCount >= 5) { openSettings(); topRightTapCount = 0; }
+  } else topRightTapCount = 0;
+}
+
+['touchstart','mousedown'].forEach(evt =>
+  document.addEventListener(evt, e => {
+    if (currentScreen !== 'main') resetIdleTimer();
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    const y = e.touches ? e.touches[0].clientY : e.clientY;
+    handleHiddenTaps(x, y);
+  }, { passive: true })
+);
+
+/* ── Main screen click → start ── */
+screens.main.addEventListener('click', e => {
+  const x = e.clientX, y = e.clientY, W = window.innerWidth;
+  if (y < TAP_AREA_SIZE && (x < TAP_AREA_SIZE || x > W - TAP_AREA_SIZE)) return;
+  startApp();
+});
+
+/* ── Difficulty apply ── */
+function applyDifficulty(diff) {
+  currentDifficulty = diff;
+  TARGET_DURATION_MS = diff.duration;
+
+  // Instruction bubble
+  ui.instruction.textContent = diff.instruction;
+  ui.instruction.style.borderColor = diff.borderColor;
+  ui.instruction.style.color = diff.textColor;
+  ui.instruction.style.background = diff.bgColor;
+  ui.instruction.style.boxShadow = `0 8px 24px ${diff.borderColor}55`;
+
+  // Ribbon
+  ui.diffRibbon.textContent = diff.emoji + ' ' + diff.label;
+  ui.diffRibbon.style.background = diff.ribbonBg;
+
+  // Main badge
+  document.getElementById('badge-dot').style.background = diff.badgeDot;
+  document.getElementById('badge-text').textContent = diff.badgeText;
+}
+
+/* ── Float text ── */
+function spawnFloatText(text, x, y) {
+  const el = document.createElement('div');
+  el.className = 'float-text';
+  el.textContent = text;
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  ui.gameField.appendChild(el);
+  setTimeout(() => el.remove(), 1200);
+}
+
+/* ── Combo update ── */
+function updateCombo(add) {
+  if (add) {
+    comboCount = Math.min(comboCount + 1, 99);
+    maxCombo = Math.max(maxCombo, comboCount);
+  } else {
+    comboCount = 0;
+  }
+  const el = ui.comboNum;
+  if (comboCount >= 3) {
+    el.textContent = 'x' + comboCount;
+    el.classList.add('active');
+    el.style.color = comboCount >= 10 ? '#FF6B35' : comboCount >= 5 ? '#FF8C00' : '#FFD700';
+  } else {
+    el.classList.remove('active');
+  }
+}
+
+/* ── Audio ── */
+async function initAudio() {
+  try {
+    ui.hudStatus.textContent = "마이크 연결 요청 중…";
+    ui.hudStatus.className = "hud-status wind-off";
+
+    if (!navigator.mediaDevices?.getUserMedia) throw new Error("미지원");
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    if (!microphone) {
+      microphone = audioContext.createMediaStreamSource(stream);
+      analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+      audioDataArray = new Uint8Array(analyser.frequencyBinCount);
+      microphone.connect(analyser);
+    }
+    ui.hudStatus.textContent = "마이크 연결 완료! 바람을 불어주세요.";
+    ui.hudStatus.className = "hud-status wind-on";
+    return true;
+  } catch(err) {
+    ui.hudStatus.innerHTML = err.name === 'NotAllowedError'
+      ? "마이크 권한이 차단되었습니다."
+      : "마이크 연결 실패! (HTTPS 환경인지 확인해주세요)";
+    ui.hudStatus.className = "hud-status";
+    ui.hudStatus.style.color = '#dc2626';
+    return false;
+  }
+}
+
+function stopMic() {
+  if (animationFrameId) { cancelAnimationFrame(animationFrameId); animationFrameId = null; }
+}
+
+/* ── Start app ── */
+async function startApp() {
+  resetIdleTimer();
+
+  // Pick difficulty
+  const diff = isRandomDifficulty
+    ? DIFFICULTIES[Math.floor(Math.random() * DIFFICULTIES.length)]
+    : DIFFICULTIES[0];
+  applyDifficulty(diff);
+
+  if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+  showScreen('play');
+  resizeParticleCanvas();
+
+  ui.hudStatus.textContent = "마이크 준비 중…";
+  ui.hudStatus.className = "hud-status wind-off";
+  ui.instruction.style.display = 'none';
+  ui.countdown.style.display = 'flex';
+
+  if (audioContext.state === 'suspended') await audioContext.resume();
+  const hasMic = await initAudio();
+  if (!hasMic) { ui.countdown.style.display = 'none'; return; }
+
+  startCountdown();
+}
+
+/* ── Countdown ── */
+function startCountdown() {
+  let count = 3;
+  const circumference = 553;
+  ui.countdownNum.textContent = count;
+  ui.countdownCircle.style.strokeDashoffset = '0';
+  ui.countdownNum.className = 'pop-anim';
+
+  const interval = setInterval(() => {
+    count--;
+    if (count > 0) {
+      ui.countdownNum.className = '';
+      void ui.countdownNum.offsetWidth;
+      ui.countdownNum.textContent = count;
+      ui.countdownNum.className = 'pop-anim';
+      ui.countdownCircle.style.strokeDashoffset = String(circumference * (1 - count/3));
+    } else if (count === 0) {
+      ui.countdownNum.className = '';
+      void ui.countdownNum.offsetWidth;
+      ui.countdownNum.textContent = '시작!';
+      ui.countdownNum.className = 'pop-anim';
+      ui.countdownNum.style.color = '#FFD700';
+      ui.countdownCircle.style.strokeDashoffset = String(circumference);
+    } else {
+      clearInterval(interval);
+      ui.countdown.style.display = 'none';
+      ui.countdownNum.style.color = 'white';
+      ui.instruction.style.display = 'block';
+      startGameLoop();
+    }
+  }, 1000);
+}
+
+/* ── Game loop ── */
+function startGameLoop() {
+  isPlaying = true;
+  accumulatedWindTime = 0;
+  lastTime = performance.now();
+  gameStartTime = performance.now();
+  comboCount = 0; maxCombo = 0;
+  isWindBlowing = false;
+  windStartTime = 0;
+
+  ui.playerBee.style.left = '10%';
+  ui.progressBar.style.width = '0%';
+  ui.progressBee.style.left = '0px';
+  particleActive = false;
+
+  let prevBlowing = false;
+  let windStreakMs = 0;
+  let lastComboSpawnTime = 0;
+
+  function loop(now) {
+    if (!isPlaying) return;
+    const dt = now - lastTime;
+    lastTime = now;
+
+    analyser.getByteFrequencyData(audioDataArray);
+    let sum = 0;
+    for (let i = 0; i < 30; i++) sum += audioDataArray[i];
+    const vol = sum / 30;
+    const blowing = vol > MIC_THRESHOLD;
+
+    // Wind state change
+    if (blowing && !prevBlowing) {
+      // Wind just started
+      windStartTime = now;
+      isWindBlowing = true;
+    } else if (!blowing && prevBlowing) {
+      // Wind just stopped
+      isWindBlowing = false;
+      updateCombo(false);
+      windStreakMs = 0;
+    }
+    prevBlowing = blowing;
+
+    if (blowing) {
+      accumulatedWindTime += dt;
+      windStreakMs += dt;
+      particleActive = true;
+
+      // Combo ticks (every 2s of continuous blowing)
+      if (windStreakMs > 2000 && now - lastComboSpawnTime > 2000) {
+        updateCombo(true);
+        lastComboSpawnTime = now;
+        // Spawn float text near bee
+        const bRect = ui.playerBee.getBoundingClientRect();
+        const fRect = ui.gameField.getBoundingClientRect();
+        const bx = bRect.left - fRect.left + bRect.width / 2;
+        const by = bRect.top - fRect.top;
+        if (comboCount >= 3) spawnFloatText('🔥 x' + comboCount + ' COMBO!', bx - 60, by - 20);
+      }
+
+      // Bee state
+      ui.playerBee.classList.remove('struggling');
+      ui.playerBee.classList.add('flying');
+      ui.hudStatus.textContent = "🌬️ 잘하고 있어요! 계속 불어주세요!";
+      ui.hudStatus.className = "hud-status wind-on";
+      resetIdleTimer();
+    } else {
+      particleActive = false;
+      ui.playerBee.classList.add('struggling');
+      ui.playerBee.classList.remove('flying');
+      ui.hudStatus.textContent = "💨 바람을 불어주세요!";
+      ui.hudStatus.className = "hud-status wind-off";
+    }
+
+    // Progress
+    const ratio = Math.min(accumulatedWindTime / TARGET_DURATION_MS, 1);
+    const pct = ratio * 100;
+    ui.progressBar.style.width = pct + '%';
+
+    // Progress bee icon position
+    const trackW = ui.progressBar.parentElement.offsetWidth;
+    ui.progressBee.style.left = Math.min(pct / 100 * trackW - 16, trackW - 32) + 'px';
+
+    // Player bee position (10% → 82%)
+    const startL = 10, endL = 82;
+    const curL = startL + (endL - startL) * ratio;
+    ui.playerBee.style.left = curL + '%';
+
+    // Height bob (fly up slightly as progress increases)
+    const bobH = 80 + ratio * 30 + (blowing ? Math.sin(now * 0.005) * 8 : 0);
+    ui.playerBee.style.bottom = bobH + 'px';
+
+    // Near hive sparkles (>85%)
+    if (ratio > 0.85 && blowing && Math.random() < 0.1) {
+      const hRect = ui.hiveDest.getBoundingClientRect();
+      const fRect = ui.gameField.getBoundingClientRect();
+      spawnSparkles(hRect.left - fRect.left + 40, hRect.top - fRect.top + 40, 3);
+    }
+
+    // HUD label color hint
+    if (ratio > 0.8) {
+      ui.hudCenterLabel.textContent = '거의 다 왔어요! 🎉';
+      ui.hudCenterLabel.style.color = '#15803d';
+    } else {
+      ui.hudCenterLabel.textContent = '집까지 날아가는 중!';
+      ui.hudCenterLabel.style.color = '#7B3F00';
+    }
+
+    if (pct >= 100) { gameWin(); return; }
+    animationFrameId = requestAnimationFrame(loop);
+  }
+  animationFrameId = requestAnimationFrame(loop);
+}
+
+/* ── Win ── */
+function gameWin() {
+  isPlaying = false;
+  stopMic();
+  particleActive = false;
+
+  const elapsedSec = ((performance.now() - gameStartTime) / 1000).toFixed(1);
+
+  // Hive glow
+  ui.hiveDest.classList.add('glow');
+  // Hive sparkle burst
+  const hRect = ui.hiveDest.getBoundingClientRect();
+  const fRect = ui.gameField.getBoundingClientRect();
+  spawnSparkles(hRect.left - fRect.left + 50, hRect.top - fRect.top + 50, 30);
+
+  // Win flash overlay
+  ui.gameField.style.animation = 'win-flash 0.8s ease-out';
+
+  setTimeout(() => {
+    ui.hiveDest.classList.remove('glow');
+    ui.gameField.style.animation = '';
+
+    // Fill result screen data
+    document.getElementById('res-time').textContent = elapsedSec;
+    document.getElementById('res-combo').textContent = 'x' + Math.max(maxCombo, 1);
+    const rc = document.getElementById('res-diff-chip');
+    rc.textContent = currentDifficulty.emoji + ' ' + currentDifficulty.label;
+    rc.style.borderColor = currentDifficulty.borderColor + '80';
+
+    showScreen('result');
+    startConfetti();
+
+    setTimeout(() => {
+      if (currentScreen === 'result') resetToMain();
+    }, 12000);
+  }, 1200);
+}
+
+/* ── Reset ── */
+function resetToMain() {
+  isPlaying = false;
+  stopMic();
+  particleActive = false;
+  confettiRunning = false;
+
+  ui.progressBar.style.width = '0%';
+  ui.playerBee.style.left = '10%';
+  ui.playerBee.style.bottom = '80px';
+  ui.playerBee.className = 'struggling';
+  ui.instruction.style.display = 'none';
+  ui.countdown.style.display = 'none';
+  ui.comboNum.classList.remove('active');
+  ui.hudCenterLabel.textContent = '집까지 날아가는 중!';
+  ui.hudCenterLabel.style.color = '#7B3F00';
+  accumulatedWindTime = 0;
+
+  showScreen('main');
+}
+
+/* ── Init ── */
+window.addEventListener('resize', resizeParticleCanvas);
+window.onload = () => {
+  resetIdleTimer();
+  applyDifficulty(DIFFICULTIES[0]);
+  particleLoop();
+};
+</script>
+</body>
+</html>
