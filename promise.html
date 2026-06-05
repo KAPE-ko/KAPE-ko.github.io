@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>축산물품질평가원 - 청렴 서약 캠페인</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700;900&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- 필수 라이브러리 -->
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --primary-blue: #004C97; /* 축산물품질평가원 느낌의 신뢰의 블루 */
+        }
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f0f4f8;
+            user-select: none; /* 텍스트 선택 방지 */
+            -webkit-user-select: none;
+            touch-action: none; /* 기본 터치 스크롤 방지 */
+            overflow: hidden;
+        }
+
+        /* 서약서 본문 폰트 */
+        .font-serif {
+            font-family: 'Noto Serif KR', serif;
+        }
+
+        /* 만년필 커서 (SVG Base64 인코딩) */
+        .pen-cursor {
+            cursor: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2732%27%20height%3D%2732%27%20viewBox%3D%270%200%2024%2024%27%3E%3Cpath%20d%3D%27M3%2017.25V21h3.75L17.81%209.94l-3.75-3.75L3%2017.25z%27%20fill%3D%27%23004C97%27%2F%3E%3Cpath%20d%3D%27M20.71%207.04c.39-.39.39-1.02%200-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41%200l-1.83%201.83%203.75%203.75%201.83-1.83z%27%20fill%3D%27%23004C97%27%2F%3E%3C%2Fsvg%3E') 0 32, crosshair !important;
+        }
+
+        /* 도장 애니메이션 */
+        @keyframes stamp {
+            0% { transform: scale(5) rotate(-20deg); opacity: 0; }
+            50% { transform: scale(0.8) rotate(-20deg); opacity: 1; }
+            100% { transform: scale(1) rotate(-20deg); opacity: 1; }
+        }
+
+        .stamp-effect {
+            animation: stamp 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            border: 6px solid #dc2626;
+            color: #dc2626;
+            border-radius: 50%;
+            padding: 20px;
+            font-weight: 900;
+            display: inline-block;
+            text-align: center;
+            width: 160px;
+            height: 160px;
+            line-height: 110px;
+            box-shadow: inset 0 0 0 4px #dc2626, 0 0 10px rgba(220, 38, 38, 0.3);
+        }
+
+        /* 펄스 애니메이션 (메인화면 버튼) */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(0, 76, 151, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 30px rgba(0, 76, 151, 0); }
+            100% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(0, 76, 151, 0); }
+        }
+        
+        .btn-pulse {
+            animation: pulse-ring 2s infinite;
+        }
+
+        /* 화면 전환 페이드 효과 */
+        .screen {
+            transition: opacity 0.5s ease-in-out;
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .hidden-screen {
+            opacity: 0;
+            pointer-events: none;
+            z-index: -1;
+        }
+        .active-screen {
+            opacity: 1;
+            pointer-events: auto;
+            z-index: 10;
+        }
+
+        /* 서약서 배경 질감 */
+        .paper-bg {
+            background-color: #ffffff;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.05' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- ==================== [1] 대기 화면 (Main Screen) ==================== -->
+    <div id="screen-main" class="screen active-screen bg-gradient-to-br from-blue-50 to-blue-200" onclick="startApp()">
+        <!-- 비밀 설정창 진입 버튼 (우측 상단 투명 영역, 5회 터치) -->
+        <div class="absolute top-0 right-0 w-32 h-32 z-50" onclick="handleSecretTap(event)"></div>
+        
+        <div class="text-center">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-blue-800 mb-2">축산물품질평가원</h2>
+                <h1 class="text-6xl font-black text-gray-900 drop-shadow-md">청렴 문화 확산 캠페인</h1>
+            </div>
+            
+            <div class="mt-20">
+                <button class="btn-pulse bg-[#004C97] text-white text-3xl font-bold py-6 px-12 rounded-full shadow-2xl hover:bg-blue-800 transition transform hover:scale-105 active:scale-95">
+                    터치하여 청렴 서약 참여하기
+                </button>
+            </div>
+            
+            <p class="mt-12 text-gray-600 text-xl font-medium animate-bounce">
+                👆 화면을 터치해 주세요
+            </p>
+        </div>
+    </div>
+
+    <!-- ==================== [2] 참여 화면 (Play Screen) ==================== -->
+    <div id="screen-play" class="screen hidden-screen bg-gray-900 bg-opacity-90">
+        
+        <!-- 중앙 서약서 영역 (이 영역만 이미지로 캡처됨) -->
+        <div id="pledge-paper" class="paper-bg w-11/12 max-w-4xl rounded-xl p-12 relative flex flex-col justify-between" style="aspect-ratio: 1 / 1.1; max-height: 85vh;">
+            
+            <!-- 워터마크 또는 로고 배치 위치 -->
+            <div class="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
+                <span class="text-[15rem] font-black font-serif text-[#004C97]">청렴</span>
+            </div>
+
+            <div class="relative z-10">
+                <h1 class="text-5xl font-black text-center mb-12 font-serif text-gray-900 border-b-4 border-double border-gray-300 pb-6">청렴 다짐 서약서</h1>
+                
+                <p id="pledge-text" class="text-3xl leading-relaxed text-gray-800 font-serif text-justify break-keep">
+                    본인은 투명하고 공정한 업무 수행을 통해 국민에게 신뢰받는 축산물 유통 문화를 조성하는 데 앞장설 것을 굳게 다짐합니다.
+                </p>
+            </div>
+
+            <div class="mt-auto relative z-10 flex flex-col items-end">
+                <div class="text-2xl font-serif text-gray-700 mb-4" id="current-date"></div>
+                
+                <div class="flex items-end gap-6 w-full justify-end">
+                    <span class="text-3xl font-serif text-gray-800 mb-4">서약자 :</span>
+                    
+                    <!-- 서명 캔버스 영역 -->
+                    <div class="relative rounded-lg border-2 border-dashed border-gray-400 bg-white shadow-inner w-[400px] h-[150px]">
+                        <span class="absolute inset-0 flex items-center justify-center text-gray-300 text-2xl font-bold pointer-events-none" id="sign-placeholder">
+                            이곳에 서명해 주세요
+                        </span>
+                        <!-- 커스텀 펜 커서 적용 -->
+                        <canvas id="signature-pad" class="w-full h-full rounded-lg pen-cursor absolute top-0 left-0 z-10"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 캡처 시 숨길 도장 효과 컨테이너 -->
+            <div id="stamp-container" data-html2canvas-ignore="true" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 hidden z-50 pointer-events-none">
+                <div class="stamp-effect font-serif text-5xl tracking-tighter">
+                    서약<br>완료
+                </div>
+            </div>
+        </div>
+
+        <!-- 서명 누락 경고 토스트 메시지 -->
+        <div id="toast-message" class="absolute top-1/4 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-8 py-4 rounded-full shadow-2xl text-2xl font-bold opacity-0 pointer-events-none transition-opacity duration-300 z-50">
+            ⚠️ 서명을 먼저 완료해 주세요.
+        </div>
+
+        <!-- 하단 컨트롤 버튼 (캡처 대상에서 제외됨) -->
+        <div class="absolute bottom-6 left-0 right-0 flex justify-center gap-6 z-20">
+            <button onclick="clearSignature()" class="bg-gray-100 text-gray-700 hover:bg-gray-200 text-2xl font-bold py-4 px-10 rounded-full shadow-lg transition">
+                다시 쓰기
+            </button>
+            <button onclick="completePledge()" class="bg-[#004C97] text-white hover:bg-blue-800 text-2xl font-bold py-4 px-16 rounded-full shadow-lg transition transform hover:scale-105">
+                서약 완료 및 저장
+            </button>
+        </div>
+        
+        <!-- 홈으로 돌아가기 (상단) -->
+        <button onclick="resetApp()" class="absolute top-6 right-6 text-white bg-gray-800 bg-opacity-50 hover:bg-opacity-80 rounded-full p-4 text-xl backdrop-blur-sm transition z-20">
+            ✕ 닫기
+        </button>
+    </div>
+
+    <!-- ==================== [3] 완료 화면 (Completion Screen) ==================== -->
+    <div id="screen-complete" class="screen hidden-screen bg-[#004C97] bg-opacity-95 text-white">
+        <div class="text-center transform scale-110">
+            <div class="text-8xl mb-8">🎉</div>
+            <h1 class="text-5xl font-black mb-6">청렴 서약에 동참해 주셔서 감사합니다!</h1>
+            
+            <div class="inline-block border-2 border-white border-opacity-30 rounded-full px-8 py-3 text-xl animate-pulse mt-12">
+                잠시 후 메인 화면으로 돌아갑니다...
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== [4] 설정 화면 (Settings Screen) ==================== -->
+    <div id="screen-settings" class="screen hidden-screen bg-gray-200 text-gray-800">
+        <div class="w-11/12 max-w-3xl bg-white rounded-2xl shadow-2xl p-10 relative z-20">
+            <h2 class="text-3xl font-bold mb-6 text-[#004C97]">⚙️ 서약서 문구 설정 (관리자용)</h2>
+            <p class="text-gray-500 mb-4">행사 목적에 맞게 청렴 서약서의 내용을 즉석에서 수정할 수 있습니다.</p>
+            <textarea id="setting-pledge-text" class="w-full h-48 p-5 border-2 border-gray-300 rounded-xl text-2xl font-serif leading-relaxed mb-8 focus:outline-none focus:border-[#004C97] resize-none"></textarea>
+            <div class="flex justify-end gap-4">
+                <button onclick="closeSettings()" class="px-8 py-4 bg-gray-200 text-gray-700 rounded-xl text-xl font-bold hover:bg-gray-300 transition">취소</button>
+                <button onclick="saveSettings()" class="px-8 py-4 bg-[#004C97] text-white rounded-xl text-xl font-bold hover:bg-blue-800 transition">저장하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== Javascript 로직 ==================== -->
+    <script>
+        // 전역 변수 설정
+        let signaturePad;
+        let inactivityTimer;
+        const INACTIVITY_LIMIT = 30000; // 30초 무반응 시 초기화
+        
+        // 설정창 진입용 변수
+        let secretTapCount = 0;
+        let secretTapTimer;
+
+        // DOM 로드 완료 시 초기화
+        document.addEventListener("DOMContentLoaded", () => {
+            initSignaturePad();
+            updateDate();
+            setupActivityListeners();
+        });
+
+        // 1. 풀스크린 및 앱 시작
+        function startApp() {
+            // 풀스크린 요청 (사용자 제스처 필수)
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => console.log("풀스크린 지원 불가 디바이스"));
+            } else if (elem.webkitRequestFullscreen) { /* Safari */
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) { /* IE11 */
+                elem.msRequestFullscreen();
+            }
+
+            // 화면 전환
+            switchScreen('screen-play');
+            clearSignature();
+            resetTimer();
+        }
+
+        // 비밀 설정창 진입 로직 (우측 상단 5회 터치)
+        function handleSecretTap(event) {
+            event.stopPropagation(); // 메인화면으로 넘어가는 이벤트 차단
+            
+            secretTapCount++;
+            clearTimeout(secretTapTimer);
+            
+            if (secretTapCount >= 5) {
+                openSettings();
+                secretTapCount = 0;
+            } else {
+                secretTapTimer = setTimeout(() => {
+                    secretTapCount = 0;
+                }, 1500); // 1.5초 내에 5번 연속 터치 조건
+            }
+        }
+
+        function openSettings() {
+            // 현재 서약서 문구를 텍스트 영역에 불러오기
+            document.getElementById('setting-pledge-text').value = document.getElementById('pledge-text').innerText.trim();
+            switchScreen('screen-settings');
+        }
+
+        function saveSettings() {
+            const newText = document.getElementById('setting-pledge-text').value.trim();
+            if(newText === '') {
+                alert('서약서 문구를 입력해 주세요.');
+                return;
+            }
+            // 서약서 문구 업데이트
+            document.getElementById('pledge-text').innerText = newText;
+            switchScreen('screen-main');
+        }
+
+        function closeSettings() {
+            switchScreen('screen-main');
+        }
+
+        // 2. 화면 전환 유틸리티
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(el => {
+                el.classList.remove('active-screen');
+                el.classList.add('hidden-screen');
+            });
+            document.getElementById(screenId).classList.remove('hidden-screen');
+            document.getElementById(screenId).classList.add('active-screen');
+        }
+
+        // 3. 서명 패드 (Signature Pad) 초기화
+        function initSignaturePad() {
+            const canvas = document.getElementById('signature-pad');
+            
+            // 캔버스 해상도 보정 (고해상도 태블릿 대응)
+            function resizeCanvas() {
+                const ratio =  Math.max(window.devicePixelRatio || 1, 1);
+                // 화면의 CSS 크기를 기반으로 실제 픽셀 크기 할당
+                canvas.width = canvas.offsetWidth * ratio;
+                canvas.height = canvas.offsetHeight * ratio;
+                canvas.getContext("2d").scale(ratio, ratio);
+            }
+
+            window.addEventListener("resize", resizeCanvas);
+            resizeCanvas();
+
+            signaturePad = new SignaturePad(canvas, {
+                penColor: "#004C97", // 잉크 색상 (기관 블루 톤)
+                minWidth: 2,         // 펜촉 최소 두께
+                maxWidth: 6,         // 펜촉 최대 두께 (손맛 부여)
+                velocityFilterWeight: 0.7 
+            });
+
+            // 서명 시작 시 Placeholder 숨기기
+            signaturePad.addEventListener("beginStroke", () => {
+                document.getElementById('sign-placeholder').style.display = 'none';
+                resetTimer();
+            });
+        }
+
+        // 다시 쓰기 (서명 초기화)
+        function clearSignature() {
+            signaturePad.clear();
+            document.getElementById('sign-placeholder').style.display = 'flex';
+            document.getElementById('stamp-container').classList.add('hidden');
+            resetTimer();
+        }
+
+        // 4. 서약 완료 및 이미지 저장 프로세스
+        async function completePledge() {
+            if (signaturePad.isEmpty()) {
+                // 서명이 없을 경우 흔들림 효과 또는 경고
+                const signArea = document.getElementById('signature-pad').parentElement;
+                signArea.style.transform = "translateX(-10px)";
+                setTimeout(() => signArea.style.transform = "translateX(10px)", 50);
+                setTimeout(() => signArea.style.transform = "translateX(0)", 100);
+                
+                // 토스트 메시지 표시
+                const toast = document.getElementById('toast-message');
+                toast.classList.remove('opacity-0');
+                toast.classList.add('opacity-100');
+                
+                // 2초 후 메시지 숨김
+                setTimeout(() => {
+                    toast.classList.remove('opacity-100');
+                    toast.classList.add('opacity-0');
+                }, 2000);
+
+                return;
+            }
+
+            clearTimeout(inactivityTimer); // 처리 중 타이머 정지
+
+            // 1) 도장 애니메이션 표시
+            const stamp = document.getElementById('stamp-container');
+            stamp.classList.remove('hidden');
+
+            // 도장 찍히는 연출 대기 (0.6초)
+            await new Promise(resolve => setTimeout(resolve, 600));
+
+            // 2) html2canvas를 이용해 서약서 캡처
+            const targetElement = document.getElementById('pledge-paper');
+            
+            try {
+                const canvas = await html2canvas(targetElement, {
+                    scale: 2, // 고해상도 캡처
+                    backgroundColor: "#ffffff",
+                    logging: false
+                });
+
+                // 3) 파일명 생성 및 다운로드
+                const now = new Date();
+                const timeStr = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}${String(now.getSeconds()).padStart(2,'0')}`;
+                const fileName = `청렴서약서_${timeStr}.png`;
+
+                const link = document.createElement('a');
+                link.download = fileName;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+
+                // 4) 완료 화면 및 이펙트 전환
+                showCompletionScreen();
+
+            } catch (error) {
+                console.error("이미지 저장 실패:", error);
+                alert("이미지 저장 중 오류가 발생했습니다.");
+                resetApp();
+            }
+        }
+
+        // 완료 화면 표시 및 꽃가루 효과
+        function showCompletionScreen() {
+            switchScreen('screen-complete');
+            
+            // Canvas Confetti 실행
+            var duration = 3 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
+
+            var interval = setInterval(function() {
+                var timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+
+                var particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 250);
+
+            // 4초 후 메인 화면으로 자동 복귀
+            setTimeout(() => {
+                resetApp();
+            }, 4000);
+        }
+
+        // 유틸: 범위 내 난수
+        function randomInRange(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        // 5. 30초 무반응 감지 로직
+        function setupActivityListeners() {
+            const events = ['touchstart', 'mousemove', 'mousedown', 'keydown', 'click'];
+            events.forEach(event => {
+                document.addEventListener(event, () => {
+                    // 메인 화면이 아닐 때만 타이머 초기화 작동
+                    if (!document.getElementById('screen-main').classList.contains('active-screen')) {
+                        resetTimer();
+                    }
+                });
+            });
+        }
+
+        function resetTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => {
+                // 완료 화면, 설정 화면이 아닐 경우에만 강제 초기화
+                const isCompleteScreen = document.getElementById('screen-complete').classList.contains('active-screen');
+                const isSettingsScreen = document.getElementById('screen-settings').classList.contains('active-screen');
+                
+                if (!isCompleteScreen && !isSettingsScreen) {
+                    resetApp();
+                }
+            }, INACTIVITY_LIMIT);
+        }
+
+        // 전체 앱 초기화 및 메인화면 복귀
+        function resetApp() {
+            clearTimeout(inactivityTimer);
+            clearSignature();
+            document.getElementById('stamp-container').classList.add('hidden');
+            switchScreen('screen-main');
+        }
+
+        // 날짜 업데이트 유틸리티
+        function updateDate() {
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}년 ${String(now.getMonth()+1).padStart(2,'0')}월 ${String(now.getDate()).padStart(2,'0')}일`;
+            document.getElementById('current-date').innerText = dateStr;
+        }
+    </script>
+</body>
+</html>
