@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- iOS 전체화면(홈 화면에 추가 시) 지원 메타 태그 추가 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>꿀벌의 귀가 도우미 - 1+등급 꿀</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+
+        body {
+            font-family: 'Jua', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* 스크롤 방지 */
+            background-color: #87CEEB; /* 하늘색 배경 */
+            user-select: none; /* 텍스트 선택 방지 */
+            -webkit-user-select: none;
+            touch-action: none; /* 더블 탭 줌 등 기본 터치 동작 방지 */
+        }
+
+        #app-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 꿀벌 애니메이션 둥둥 떠다니는 효과 */
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(-5deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+            100% { transform: translateY(0px) rotate(-5deg); }
+        }
+
+        /* 힘들어하는 꿀벌 애니메이션 */
+        @keyframes struggle {
+            0% { transform: translateX(-5px) translateY(5px); }
+            25% { transform: translateX(5px) translateY(-5px); }
+            50% { transform: translateX(-5px) translateY(5px); }
+            75% { transform: translateX(5px) translateY(-5px); }
+            100% { transform: translateX(0) translateY(0); }
+        }
+
+        /* 바람 부는 효과 애니메이션 */
+        @keyframes wind {
+            0% { opacity: 0; transform: translateX(50px) scale(0.5); }
+            50% { opacity: 0.6; transform: translateX(0px) scale(1.2); }
+            100% { opacity: 0; transform: translateX(-50px) scale(0.8); }
+        }
+
+        /* 텍스트 팝업 애니메이션 */
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            80% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* 꿀단지 반짝임 효과 */
+        @keyframes shine {
+            0% { filter: brightness(1); }
+            50% { filter: brightness(1.3) drop-shadow(0 0 20px gold); }
+            100% { filter: brightness(1); }
+        }
+
+        .animate-float { animation: float 3s ease-in-out infinite; }
+        .animate-struggle { animation: struggle 0.5s ease-in-out infinite; }
+        .animate-pop { animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .animate-shine { animation: shine 2s infinite; }
+
+        /* 진행도 게이지 트랜지션 */
+        #progress-fill {
+            transition: width 0.1s linear;
+        }
+
+        /* 풀스크린 버튼 스타일 */
+        #fullscreen-btn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.8);
+            color: #333;
+            border-radius: 50%;
+            padding: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 화면 전환 유틸리티 */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-size: cover;
+            background-position: center;
+        }
+        .screen.active {
+            display: flex;
+        }
+
+        /* 배경 구름 */
+        .cloud {
+            position: absolute;
+            background: white;
+            border-radius: 50px;
+            opacity: 0.8;
+        }
+        .cloud::before, .cloud::after {
+            content: '';
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+        }
+        
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    
+    <!-- 전체화면 버튼 -->
+    <button id="fullscreen-btn" onclick="toggleFullScreen()" class="hover:bg-white transition-colors" title="전체화면 전환">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+        </svg>
+    </button>
+
+    <!-- 배경 장식 (구름) -->
+    <div class="cloud" style="width: 150px; height: 50px; top: 10%; left: 10%;"></div>
+    <div class="cloud" style="width: 200px; height: 60px; top: 20%; right: 15%;"></div>
+    <div class="cloud" style="width: 120px; height: 40px; top: 50%; left: 5%;"></div>
+    
+    <style>
+        .cloud:nth-child(2)::before { width: 70px; height: 70px; top: -30px; left: 20px; }
+        .cloud:nth-child(2)::after { width: 50px; height: 50px; top: -20px; right: 20px; }
+        .cloud:nth-child(3)::before { width: 90px; height: 90px; top: -40px; left: 30px; }
+        .cloud:nth-child(3)::after { width: 60px; height: 60px; top: -25px; right: 30px; }
+        .cloud:nth-child(4)::before { width: 60px; height: 60px; top: -25px; left: 15px; }
+        .cloud:nth-child(4)::after { width: 40px; height: 40px; top: -15px; right: 15px; }
+    </style>
+
+    <!-- 1. 메인 화면 -->
+    <div id="screen-main" class="screen active cursor-pointer">
+        <!-- 타이틀 배경 -->
+        <div class="bg-white/80 p-8 rounded-3xl shadow-xl border-4 border-yellow-400 text-center max-w-2xl mx-4 mb-10 z-10 animate-float">
+            <h1 class="text-4xl md:text-5xl lg:text-6xl text-amber-700 font-bold mb-4 drop-shadow-md">
+                꿀벌의 귀가 도우미
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-800 leading-relaxed">
+                열심히 꿀을 딴 꿀벌이 지쳐서 집에 가지 못하고 있어요!<br>
+                <span class="text-blue-600 font-bold text-2xl md:text-3xl mt-2 block">화면을 터치하고 입김을 불어 도와주세요!</span>
+            </p>
+        </div>
+
+        <!-- 꿀벌 캐릭터 (SVG) -->
+        <div class="relative animate-struggle">
+            <div class="text-9xl filter drop-shadow-lg">🐝</div>
+            <!-- 땀방울 -->
+            <div class="absolute -top-4 -right-4 text-4xl">💧</div>
+            <div class="absolute top-4 -left-4 text-3xl">💦</div>
+            <!-- 무거운 꿀통 -->
+            <div class="absolute -bottom-8 -right-8 text-7xl">🍯</div>
+        </div>
+
+        <div class="absolute bottom-10 animate-bounce text-2xl text-white font-bold bg-amber-500 px-6 py-3 rounded-full shadow-lg border-2 border-white">
+            화면을 터치하여 시작하기👆
+        </div>
+    </div>
+
+    <!-- 2. 플레이 화면 -->
+    <div id="screen-play" class="screen">
+        
+        <!-- 미터기 UI -->
+        <div class="absolute top-10 w-4/5 max-w-3xl bg-white/90 p-4 rounded-2xl shadow-lg border-4 border-amber-300 z-20 flex flex-col items-center">
+            <div class="flex justify-between w-full mb-2 text-2xl font-bold text-amber-800">
+                <span>출발지 🌻</span>
+                <span>집까지 남은 거리</span>
+                <span>벌통 🛖</span>
+            </div>
+            <div class="w-full h-8 bg-gray-200 rounded-full overflow-hidden relative border-2 border-gray-300 shadow-inner">
+                <!-- 진행바 배경 패턴 -->
+                <div class="absolute inset-0 opacity-20" style="background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, #000 10px, #000 20px);"></div>
+                <!-- 실제 채워지는 바 -->
+                <div id="progress-fill" class="h-full bg-gradient-to-r from-yellow-400 to-amber-500 w-0 relative">
+                    <!-- 반짝임 효과 -->
+                    <div class="absolute top-0 right-0 bottom-0 w-10 bg-white opacity-30 skew-x-[-20deg]"></div>
+                </div>
+            </div>
+            <div id="mic-status" class="mt-3 text-lg font-bold text-gray-500">마이크 연결 대기중...</div>
+        </div>
+
+        <!-- 카운트다운 UI -->
+        <div id="countdown-ui" class="absolute inset-0 flex items-center justify-center z-50 bg-black/40 backdrop-blur-sm hidden">
+            <div id="countdown-text" class="text-9xl font-bold text-white drop-shadow-[0_0_20px_rgba(255,165,0,1)]">3</div>
+        </div>
+
+        <!-- 게임 영역 -->
+        <div class="relative w-full h-1/2 flex items-center mt-32">
+            <!-- 꿀벌 (움직임) -->
+            <div id="player-bee" class="absolute left-10 text-8xl z-10 transition-all duration-100 filter drop-shadow-xl">
+                🐝<span class="absolute -bottom-4 -right-4 text-5xl">🍯</span>
+            </div>
+            
+            <!-- 바람 이펙트 -->
+            <div id="wind-effect" class="absolute left-0 w-full h-full pointer-events-none opacity-0">
+                <div class="absolute top-1/4 left-1/4 w-32 h-4 bg-white rounded-full" style="animation: wind 1s linear infinite;"></div>
+                <div class="absolute top-2/4 left-1/3 w-48 h-6 bg-white rounded-full" style="animation: wind 1.2s linear infinite 0.2s;"></div>
+                <div class="absolute top-3/4 left-1/5 w-24 h-4 bg-white rounded-full" style="animation: wind 0.8s linear infinite 0.5s;"></div>
+            </div>
+
+            <!-- 목적지 (벌통) -->
+            <div class="absolute right-10 text-9xl z-0 filter drop-shadow-2xl">
+                🛖
+            </div>
+        </div>
+
+        <!-- 하단 안내 멘트 -->
+        <div id="play-instruction" class="absolute bottom-20 bg-white/90 px-8 py-4 rounded-full shadow-lg border-4 text-3xl font-bold animate-pulse hidden transition-colors duration-300">
+            태블릿 마이크를 향해 '후~' 하고 바람을 불어주세요! 🌬️
+        </div>
+    </div>
+
+    <!-- 3. 결과 화면 -->
+    <div id="screen-result" class="screen">
+        <!-- 폭죽 배경 효과 -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+            <div class="absolute top-10 left-10 text-6xl animate-bounce" style="animation-delay: 0.1s">✨</div>
+            <div class="absolute top-20 right-20 text-6xl animate-bounce" style="animation-delay: 0.3s">🎉</div>
+            <div class="absolute bottom-32 left-1/4 text-5xl animate-bounce" style="animation-delay: 0.5s">🎊</div>
+            <div class="absolute top-1/3 right-1/4 text-6xl animate-bounce" style="animation-delay: 0.2s">✨</div>
+        </div>
+
+        <div class="bg-white/95 p-8 md:p-12 rounded-3xl shadow-2xl border-8 border-yellow-400 text-center max-w-3xl mx-4 z-10 flex flex-col items-center">
+            
+            <div class="flex justify-center items-end mb-6 space-x-4">
+                <div class="text-8xl animate-bounce">🐝</div>
+                <div class="text-5xl pb-4">❤️</div>
+                <div class="text-9xl animate-shine relative">
+                    🍯
+                    <!-- 1+등급 뱃지 -->
+                    <div class="absolute -top-4 -right-6 bg-red-500 text-white text-2xl font-black px-4 py-2 rounded-full border-4 border-white shadow-lg transform rotate-12">
+                        1+등급
+                    </div>
+                </div>
+            </div>
+
+            <h2 class="text-4xl md:text-5xl text-green-600 font-bold mb-6 drop-shadow-sm">
+                관람객님 덕분에<br>무사히 집에 도착했어요!<br>고맙습니다!
+            </h2>
+            
+            <div class="bg-amber-50 p-6 rounded-2xl border-2 border-amber-200">
+                <p class="text-2xl md:text-3xl text-gray-800 leading-relaxed font-semibold">
+                    꿀벌이 열심히 모아온 꿀은<br>
+                    <span class="text-blue-700 font-black">축산물품질평가원</span>의 깐깐한 심사를 거쳐<br>
+                    최상급 <span class="text-red-500 font-black text-4xl bg-yellow-200 px-2 rounded">1+등급 꿀</span>로 출하되었답니다!
+                </p>
+                <p class="text-xl md:text-2xl text-gray-600 mt-4 border-t-2 border-amber-200 pt-4">
+                    수분, 당도, 탄소동위원소비까지 모두 검증된<br>1+등급 꿀의 우수성을 직접 확인해보세요.
+                </p>
+            </div>
+            
+            <button onclick="resetToMain()" class="mt-8 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-8 rounded-full text-xl transition-colors">
+                처음으로 돌아가기
+            </button>
+        </div>
+    </div>
+
+    <!-- 관리자용 설정 모달 -->
+    <div id="settings-modal" class="hidden fixed inset-0 bg-black/60 z-[200] flex justify-center items-center">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl w-80 text-center" onclick="event.stopPropagation()">
+            <h3 class="text-2xl font-black text-gray-800 mb-6">⚙️ 관리자 설정</h3>
+            
+            <div class="mb-4">
+                <label for="mic-sensitivity" class="block text-left text-gray-700 font-bold mb-2">마이크 감도 (낮을수록 민감)</label>
+                <input type="range" id="mic-sensitivity" min="1" max="200" value="15" class="w-full accent-blue-500">
+                <p class="text-sm text-gray-500 mt-2 font-semibold">현재 임계값: <span id="sensitivity-value" class="text-blue-600 text-lg">15</span></p>
+            </div>
+            
+            <!-- 랜덤 난이도 설정 토글 -->
+            <div class="mb-4 text-left border-t-2 border-gray-100 pt-4">
+                <label class="flex items-center space-x-3 cursor-pointer">
+                    <input type="checkbox" id="random-difficulty-toggle" class="w-6 h-6 accent-blue-600">
+                    <span class="text-gray-700 font-bold">랜덤 호흡 난이도 적용</span>
+                </label>
+            </div>
+
+            <!-- 플레이 통계 영역 추가 -->
+            <div class="mb-6 text-left border-t-2 border-gray-100 pt-4">
+                <h4 class="text-gray-700 font-bold mb-2">📊 당일 참여자 통계</h4>
+                <div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <span class="text-gray-600 font-semibold text-sm" id="stat-date">-</span>
+                    <span class="text-2xl font-black text-blue-600"><span id="stat-count">0</span><span class="text-base text-gray-500 font-bold ml-1">명</span></span>
+                </div>
+                <button id="reset-stat-btn" onclick="resetStats()" class="mt-2 w-full bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2 px-4 rounded-lg text-sm transition-colors border border-red-200">
+                    통계 초기화
+                </button>
+            </div>
+
+            <button onclick="closeSettings()" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-colors">
+                저장 및 닫기
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 최상단: 상태 변수 선언 영역 ---
+    const IDLE_TIMEOUT_MS = 30000; // 30초 무반응 시 초기화
+    let MIC_THRESHOLD = 15; // 바람 인식 데시벨 임계값
+    
+    // 난이도 관련 변수
+    let targetDurationMs = 13000; // 목표 입바람 누적 시간 (초기값 13초)
+    let isRandomDifficulty = false; // 랜덤 난이도 설정 여부
+    let currentDifficulty = 'normal'; // 'normal', 'hard', 'very_hard'
+
+    let currentScreen = 'main';
+    let idleTimer = null;
+    let isPlaying = false;
+    
+    // 통계 관련 변수
+    let todayDateStr = new Date().toLocaleDateString();
+    let playCount = 0;
+
+    // 숨겨진 탭 로직용 변수
+    let topLeftTapCount = 0;
+    let topLeftLastTap = 0;
+    let topRightTapCount = 0;
+    let topRightLastTap = 0;
+    const TAP_TIMEOUT = 500; // 0.5초 이내 연속 탭만 인정
+    const TAP_AREA_SIZE = 120; // 상단 모서리 터치 영역 크기 (픽셀)
+
+    // 오디오 관련 변수
+    let audioContext = null;
+    let microphone = null;
+    let analyser = null;
+    let audioDataArray = null;
+    let animationFrameId = null;
+
+    // 게임 진행 상태
+    let accumulatedWindTime = 0; // 누적 바람 시간 (ms)
+    let lastTime = 0; // 프레임 계산용 이전 시간
+
+    // DOM 요소 캐싱
+    const screens = {
+        main: document.getElementById('screen-main'),
+        play: document.getElementById('screen-play'),
+        result: document.getElementById('screen-result')
+    };
+    const ui = {
+        progressFill: document.getElementById('progress-fill'),
+        playerBee: document.getElementById('player-bee'),
+        windEffect: document.getElementById('wind-effect'),
+        countdown: document.getElementById('countdown-ui'),
+        countdownText: document.getElementById('countdown-text'),
+        instruction: document.getElementById('play-instruction'),
+        micStatus: document.getElementById('mic-status')
+    };
+
+    // --- 통계 관련 함수 ---
+    function updateStatsUI() {
+        document.getElementById('stat-date').textContent = todayDateStr;
+        document.getElementById('stat-count').textContent = playCount;
+    }
+
+    function recordPlay() {
+        const currentDateStr = new Date().toLocaleDateString();
+        // 자정이 지나 날짜가 바뀌었으면 카운트를 1로 리셋, 아니면 +1
+        if (todayDateStr !== currentDateStr) {
+            todayDateStr = currentDateStr;
+            playCount = 1;
+        } else {
+            playCount++;
+        }
+        updateStatsUI();
+    }
+
+    function resetStats() {
+        playCount = 0;
+        todayDateStr = new Date().toLocaleDateString();
+        updateStatsUI();
+        
+        // 시각적 피드백 제공 (알럿 창 대신)
+        const btn = document.getElementById('reset-stat-btn');
+        btn.textContent = "초기화 완료!";
+        btn.classList.add('bg-red-500', 'text-white');
+        btn.classList.remove('bg-red-50', 'text-red-600');
+        
+        setTimeout(() => {
+            btn.textContent = "통계 초기화";
+            btn.classList.remove('bg-red-500', 'text-white');
+            btn.classList.add('bg-red-50', 'text-red-600');
+        }, 2000);
+    }
+
+    // --- 유틸리티 및 이벤트 리스너 ---
+    function showScreen(screenName) {
+        Object.values(screens).forEach(s => s.classList.remove('active'));
+        screens[screenName].classList.add('active');
+        currentScreen = screenName;
+        resetIdleTimer();
+    }
+
+    function toggleFullScreen() {
+        const doc = window.document;
+        const docEl = doc.documentElement;
+
+        const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+        const cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+
+        if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+            if (requestFullScreen) {
+                requestFullScreen.call(docEl).catch(err => {
+                    console.log(`전체화면 오류: ${err.message}`);
+                });
+            }
+        } else {
+            if (cancelFullScreen) {
+                cancelFullScreen.call(doc);
+            }
+        }
+        resetIdleTimer();
+    }
+
+    function handleUserInteraction(e) {
+        if (currentScreen !== 'main') {
+            resetIdleTimer();
+        }
+
+        let x = e.clientX;
+        let y = e.clientY;
+        if (e.touches && e.touches.length > 0) {
+            x = e.touches[0].clientX;
+            y = e.touches[0].clientY;
+        }
+
+        if (x !== undefined && y !== undefined) {
+            handleHiddenTaps(x, y);
+        }
+    }
+
+    ['touchstart', 'mousedown'].forEach(evt => 
+        document.addEventListener(evt, handleUserInteraction, { passive: true })
+    );
+
+    function handleHiddenTaps(x, y) {
+        const now = Date.now();
+        const screenW = window.innerWidth;
+
+        // 1. 좌측 상단
+        if (x < TAP_AREA_SIZE && y < TAP_AREA_SIZE) {
+            if (now - topLeftLastTap > TAP_TIMEOUT) topLeftTapCount = 0;
+            topLeftTapCount++;
+            topLeftLastTap = now;
+            if (topLeftTapCount >= 5) {
+                toggleFullScreen();
+                topLeftTapCount = 0;
+            }
+        } else {
+            topLeftTapCount = 0;
+        }
+
+        // 2. 우측 상단
+        if (x > screenW - TAP_AREA_SIZE && y < TAP_AREA_SIZE) {
+            if (now - topRightLastTap > TAP_TIMEOUT) topRightTapCount = 0;
+            topRightTapCount++;
+            topRightLastTap = now;
+            if (topRightTapCount >= 5) {
+                openSettings();
+                topRightTapCount = 0;
+            }
+        } else {
+            topRightTapCount = 0;
+        }
+    }
+
+    function openSettings() {
+        document.getElementById('settings-modal').classList.remove('hidden');
+        if (idleTimer) clearTimeout(idleTimer);
+    }
+
+    function closeSettings() {
+        document.getElementById('settings-modal').classList.add('hidden');
+        resetIdleTimer();
+    }
+
+    document.getElementById('mic-sensitivity').addEventListener('input', (e) => {
+        MIC_THRESHOLD = parseInt(e.target.value, 10);
+        document.getElementById('sensitivity-value').textContent = MIC_THRESHOLD;
+    });
+
+    document.getElementById('random-difficulty-toggle').addEventListener('change', (e) => {
+        isRandomDifficulty = e.target.checked;
+    });
+
+    screens.main.addEventListener('click', (e) => {
+        let x = e.clientX;
+        let y = e.clientY;
+        const screenW = window.innerWidth;
+        
+        if (y < TAP_AREA_SIZE && (x < TAP_AREA_SIZE || x > screenW - TAP_AREA_SIZE)) {
+            return;
+        }
+        startApp();
+    });
+
+    function resetIdleTimer() {
+        if (idleTimer) clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => {
+            console.log("30초 무반응. 메인으로 복귀합니다.");
+            resetToMain();
+        }, IDLE_TIMEOUT_MS);
+    }
+
+    function resetToMain() {
+        isPlaying = false;
+        stopMic();
+        showScreen('main');
+        
+        ui.progressFill.style.width = '0%';
+        ui.playerBee.style.left = '10%';
+        ui.playerBee.className = 'absolute left-10 text-8xl z-10 transition-all duration-100 filter drop-shadow-xl';
+        ui.instruction.classList.add('hidden');
+        ui.windEffect.style.opacity = '0';
+        accumulatedWindTime = 0;
+    }
+
+    async function initAudio() {
+        try {
+            ui.micStatus.textContent = "마이크 연결 요청 중...";
+            ui.micStatus.className = "mt-3 text-lg font-bold text-blue-500 animate-pulse";
+            
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                throw new Error("마이크를 지원하지 않거나 HTTPS 환경이 아닙니다.");
+            }
+
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+            
+            if (!microphone) {
+                microphone = audioContext.createMediaStreamSource(stream);
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                const bufferLength = analyser.frequencyBinCount;
+                audioDataArray = new Uint8Array(bufferLength);
+                microphone.connect(analyser);
+            }
+
+            ui.micStatus.textContent = "마이크 연결 완료! 바람을 불어주세요.";
+            ui.micStatus.className = "mt-3 text-lg font-bold text-green-600";
+            return true;
+        } catch (err) {
+            console.error("마이크 권한 오류:", err);
+            if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                ui.micStatus.innerHTML = "마이크 권한이 차단되었습니다.<br>브라우저 설정에서 권한을 허용해주세요.";
+            } else {
+                ui.micStatus.innerHTML = "마이크 연결 실패!<br>(HTTPS 보안 연결 환경인지 확인해주세요)";
+            }
+            ui.micStatus.className = "mt-3 text-center text-lg font-bold text-red-500";
+            return false;
+        }
+    }
+
+    function stopMic() {
+        if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = null;
+        }
+    }
+
+    function setInstructionUI() {
+        ui.instruction.className = "absolute bottom-20 bg-white/90 px-8 py-4 rounded-full shadow-lg border-4 text-3xl font-bold animate-pulse transition-colors duration-300";
+
+        if (currentDifficulty === 'hard') {
+            ui.instruction.textContent = "집이 멀어요! 평소보다 더 길게 불어주세요! 💦";
+            ui.instruction.classList.add("text-orange-600", "border-orange-400");
+        } else if (currentDifficulty === 'very_hard') {
+            ui.instruction.textContent = "꿀이 꽉 차서 무거워요! 🍯 아주 길고 세게 불어주세요!! 💪";
+            ui.instruction.classList.add("text-purple-600", "border-purple-400");
+        } else {
+            ui.instruction.textContent = "태블릿 마이크를 향해 '후~' 하고 바람을 불어주세요! 🌬️";
+            ui.instruction.classList.add("text-blue-600", "border-blue-400");
+        }
+    }
+
+    async function startApp() {
+        resetIdleTimer();
+        
+        if (isRandomDifficulty) {
+            const rand = Math.random();
+            if (rand < 0.33) {
+                currentDifficulty = 'normal';
+                targetDurationMs = 13000;
+            } else if (rand < 0.66) {
+                currentDifficulty = 'hard';
+                targetDurationMs = 16000;
+            } else {
+                currentDifficulty = 'very_hard';
+                targetDurationMs = 20000;
+            }
+        } else {
+            currentDifficulty = 'normal';
+            targetDurationMs = 13000;
+        }
+
+        setInstructionUI();
+        
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        showScreen('play');
+        ui.micStatus.textContent = "마이크 준비 중...";
+        ui.micStatus.className = "mt-3 text-lg font-bold text-gray-500";
+        
+        if (audioContext.state === 'suspended') {
+            await audioContext.resume();
+        }
+
+        const hasMic = await initAudio();
+        if (!hasMic) {
+            ui.countdown.classList.add('hidden');
+            ui.playerBee.classList.add('animate-struggle');
+            return; 
+        }
+
+        // 💡 참여 횟수 카운트 증가 (권한 획득 성공 및 플레이 진입 시점)
+        recordPlay();
+        
+        startCountdown();
+    }
+
+    function startCountdown() {
+        ui.countdown.classList.remove('hidden');
+        ui.instruction.classList.add('hidden');
+        ui.playerBee.classList.add('animate-struggle');
+        
+        let count = 3;
+        ui.countdownText.textContent = count;
+        ui.countdownText.className = "text-9xl font-bold text-white drop-shadow-[0_0_20px_rgba(255,165,0,1)] animate-pop";
+
+        const countInterval = setInterval(() => {
+            count--;
+            if (count > 0) {
+                ui.countdownText.classList.remove('animate-pop');
+                void ui.countdownText.offsetWidth; 
+                ui.countdownText.textContent = count;
+                ui.countdownText.classList.add('animate-pop');
+            } else if (count === 0) {
+                ui.countdownText.textContent = "시작!";
+                ui.countdownText.classList.remove('animate-pop');
+                void ui.countdownText.offsetWidth; 
+                ui.countdownText.classList.add('animate-pop');
+                ui.countdownText.classList.replace('text-white', 'text-yellow-300');
+            } else {
+                clearInterval(countInterval);
+                ui.countdown.classList.add('hidden');
+                ui.instruction.classList.remove('hidden');
+                startGameLoop();
+            }
+        }, 1000);
+    }
+
+    function startGameLoop() {
+        isPlaying = true;
+        accumulatedWindTime = 0;
+        lastTime = performance.now();
+        ui.micStatus.textContent = "바람을 불어 꿀벌을 밀어주세요!";
+        
+        function loop(currentTime) {
+            if (!isPlaying) return;
+            
+            const deltaTime = currentTime - lastTime;
+            lastTime = currentTime;
+
+            analyser.getByteFrequencyData(audioDataArray);
+            
+            let sum = 0;
+            const calcLength = 30; 
+            for(let i = 0; i < calcLength; i++) {
+                sum += audioDataArray[i];
+            }
+            const averageVolume = sum / calcLength;
+
+            if (averageVolume > MIC_THRESHOLD) {
+                accumulatedWindTime += deltaTime;
+                ui.playerBee.classList.remove('animate-struggle');
+                ui.playerBee.classList.add('animate-float');
+                ui.windEffect.style.opacity = '1';
+                resetIdleTimer();
+            } else {
+                ui.playerBee.classList.add('animate-struggle');
+                ui.playerBee.classList.remove('animate-float');
+                ui.windEffect.style.opacity = '0';
+            }
+
+            let progressRatio = accumulatedWindTime / targetDurationMs;
+            if (progressRatio > 1) progressRatio = 1;
+            
+            const progressPercent = progressRatio * 100;
+            
+            ui.progressFill.style.width = `${progressPercent}%`;
+            
+            const startLeft = 10;
+            const endLeft = 80;
+            const currentLeft = startLeft + ((endLeft - startLeft) * progressRatio);
+            ui.playerBee.style.left = `calc(${currentLeft}% - 3rem)`;
+
+            if (progressPercent >= 100) {
+                gameWin();
+                return;
+            }
+
+            animationFrameId = requestAnimationFrame(loop);
+        }
+
+        animationFrameId = requestAnimationFrame(loop);
+    }
+
+    function gameWin() {
+        isPlaying = false;
+        stopMic();
+        
+        ui.windEffect.style.opacity = '0';
+        ui.micStatus.textContent = "도착!";
+        ui.playerBee.classList.remove('animate-struggle');
+        
+        setTimeout(() => {
+            showScreen('result');
+            setTimeout(() => {
+                if(currentScreen === 'result') {
+                    resetToMain();
+                }
+            }, 10000);
+        }, 1000);
+    }
+
+    window.onload = () => {
+        resetIdleTimer();
+        updateStatsUI(); // 초기 진입 시 날짜 및 통계 UI 반영
+    };
+
+</script>
+</body>
+</html>
