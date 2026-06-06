@@ -185,7 +185,7 @@
     <!-- 2. 플레이 화면 -->
     <div id="screen-play" class="screen">
         
-        <!-- 타이머 UI -->
+        <!-- 타이머 UI (우측 상단) -->
         <div id="timer-container" class="absolute top-6 right-8 bg-white/90 border-4 border-blue-400 px-6 py-2 rounded-full font-bold text-blue-600 z-30 shadow-lg text-2xl transition-colors duration-300">
             ⏳ 남은 시간: <span id="timer-text">00.0</span>초
         </div>
@@ -318,25 +318,48 @@
         </div>
     </div>
 
-    <!-- 관리자용 설정 모달 -->
-    <div id="settings-modal" class="hidden fixed inset-0 bg-black/60 z-[200] flex justify-center items-center">
-        <div class="bg-white p-8 rounded-3xl shadow-2xl w-80 text-center" onclick="event.stopPropagation()">
-            <h3 class="text-2xl font-black text-gray-800 mb-6">⚙️ 관리자 설정</h3>
+    <!-- 관리자용 설정 모달 (스크롤 가능하도록 수정) -->
+    <div id="settings-modal" class="hidden fixed inset-0 bg-black/60 z-[200] flex justify-center items-center p-4">
+        <div class="bg-white p-6 rounded-3xl shadow-2xl w-[360px] max-h-[90vh] overflow-y-auto text-center" onclick="event.stopPropagation()">
+            <h3 class="text-2xl font-black text-gray-800 mb-4">⚙️ 관리자 설정</h3>
             
+            <!-- 마이크 감도 설정 -->
             <div class="mb-4">
                 <label for="mic-sensitivity" class="block text-left text-gray-700 font-bold mb-2">마이크 감도 (낮을수록 민감)</label>
                 <input type="range" id="mic-sensitivity" min="1" max="200" value="15" class="w-full accent-blue-500">
-                <p class="text-sm text-gray-500 mt-2 font-semibold">현재 임계값: <span id="sensitivity-value" class="text-blue-600 text-lg">15</span></p>
+                <p class="text-sm text-gray-500 mt-1 font-semibold">현재 임계값: <span id="sensitivity-value" class="text-blue-600 text-lg">15</span></p>
+            </div>
+
+            <!-- 목표 시간 설정 영역 추가 -->
+            <div class="mb-4 text-left border-t-2 border-gray-100 pt-4">
+                <h4 class="text-gray-700 font-bold mb-2">⏱️ 난이도별 목표 시간 (초)</h4>
+                <div class="flex space-x-2 text-sm text-center">
+                    <div class="flex flex-col w-1/3">
+                        <label class="text-blue-600 font-bold mb-1">기본</label>
+                        <input type="number" id="time-normal" value="6" min="1" max="30" class="border-2 border-blue-200 rounded p-1 text-center font-bold text-gray-700 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div class="flex flex-col w-1/3">
+                        <label class="text-orange-600 font-bold mb-1">어려움</label>
+                        <input type="number" id="time-hard" value="8" min="1" max="30" class="border-2 border-orange-200 rounded p-1 text-center font-bold text-gray-700 focus:outline-none focus:border-orange-500">
+                    </div>
+                    <div class="flex flex-col w-1/3">
+                        <label class="text-purple-600 font-bold mb-1">매우어려움</label>
+                        <input type="number" id="time-very-hard" value="10" min="1" max="30" class="border-2 border-purple-200 rounded p-1 text-center font-bold text-gray-700 focus:outline-none focus:border-purple-500">
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2 leading-tight">* 실제 타임오버(시간초과) 제한시간은 설정하신 목표시간에 <b>+3초</b>가 자동 더해집니다.</p>
             </div>
             
+            <!-- 랜덤 난이도 토글 -->
             <div class="mb-4 text-left border-t-2 border-gray-100 pt-4">
                 <label class="flex items-center space-x-3 cursor-pointer">
                     <input type="checkbox" id="random-difficulty-toggle" class="w-6 h-6 accent-blue-600">
                     <span class="text-gray-700 font-bold">랜덤 호흡 난이도 적용</span>
                 </label>
-                <p class="text-xs text-gray-500 mt-1 pl-9">체크 시 무작위(6초/8초/10초) 적용<br>끄면 기본(6초)이 적용됩니다.</p>
+                <p class="text-xs text-gray-500 mt-1 pl-9">체크 시 위 설정시간이 무작위로 적용<br>끄면 <b>[기본]</b> 시간으로만 진행됩니다.</p>
             </div>
 
+            <!-- 플레이 통계 -->
             <div class="mb-6 text-left border-t-2 border-gray-100 pt-4">
                 <h4 class="text-gray-700 font-bold mb-2">📊 당일 참여자 통계</h4>
                 <div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-200">
@@ -360,7 +383,11 @@
     const IDLE_TIMEOUT_MS = 30000;
     let MIC_THRESHOLD = 15;
     
-    // 시간 및 난이도 관련 (기본 6초로 대폭 하향)
+    // 시간 및 난이도 설정 변수 (기본 6/8/10초)
+    let configTimeNormal = 6;
+    let configTimeHard = 8;
+    let configTimeVeryHard = 10;
+    
     let targetDurationMs = 6000;
     let timeLimitMs = 9000; // 타겟 시간 + 3초
     let isRandomDifficulty = false;
@@ -498,6 +525,7 @@
         resetIdleTimer();
     }
 
+    // 설정창 입력 이벤트 연결
     document.getElementById('mic-sensitivity').addEventListener('input', (e) => {
         MIC_THRESHOLD = parseInt(e.target.value, 10);
         document.getElementById('sensitivity-value').textContent = MIC_THRESHOLD;
@@ -505,6 +533,16 @@
 
     document.getElementById('random-difficulty-toggle').addEventListener('change', (e) => {
         isRandomDifficulty = e.target.checked;
+    });
+
+    document.getElementById('time-normal').addEventListener('input', (e) => {
+        configTimeNormal = parseInt(e.target.value, 10) || 6;
+    });
+    document.getElementById('time-hard').addEventListener('input', (e) => {
+        configTimeHard = parseInt(e.target.value, 10) || 8;
+    });
+    document.getElementById('time-very-hard').addEventListener('input', (e) => {
+        configTimeVeryHard = parseInt(e.target.value, 10) || 10;
     });
 
     screens.main.addEventListener('click', (e) => {
@@ -596,17 +634,26 @@
         clearWarningState();
         isGameOver = false;
         
-        // 💡 13초 -> 6초 기준으로 난이도 조정
+        // 관리자가 설정한 시간(초 단위)을 ms로 변환하여 적용
         if (isRandomDifficulty) {
             const rand = Math.random();
-            if (rand < 0.33) { currentDifficulty = 'normal'; targetDurationMs = 6000; } 
-            else if (rand < 0.66) { currentDifficulty = 'hard'; targetDurationMs = 8000; } 
-            else { currentDifficulty = 'very_hard'; targetDurationMs = 10000; }
+            if (rand < 0.33) { 
+                currentDifficulty = 'normal'; 
+                targetDurationMs = configTimeNormal * 1000; 
+            } else if (rand < 0.66) { 
+                currentDifficulty = 'hard'; 
+                targetDurationMs = configTimeHard * 1000; 
+            } else { 
+                currentDifficulty = 'very_hard'; 
+                targetDurationMs = configTimeVeryHard * 1000; 
+            }
         } else {
-            currentDifficulty = 'normal'; targetDurationMs = 6000;
+            currentDifficulty = 'normal'; 
+            targetDurationMs = configTimeNormal * 1000;
         }
         
-        timeLimitMs = targetDurationMs + 3000; // 목표 시간 + 3초 제한시간
+        // 타임오버는 목표시간 + 3초
+        timeLimitMs = targetDurationMs + 3000; 
 
         setInstructionUI();
         if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -664,7 +711,7 @@
         isPlaying = true;
         accumulatedWindTime = 0;
         lastTime = performance.now();
-        gameStartTime = performance.now(); // 제한 시간 체크용 절대 타이머 시작
+        gameStartTime = performance.now(); 
         ui.micStatus.textContent = "바람을 불어 꿀벌을 밀어주세요!";
         
         function loop(currentTime) {
@@ -680,14 +727,12 @@
 
             ui.timerText.textContent = (remainingMs / 1000).toFixed(1);
 
-            // 남은 시간이 3초 이하일 때 경고 발동
             if (remainingMs <= 3000 && remainingMs > 0 && !isGameOver) {
                 ui.warningBanner.classList.remove('hidden');
                 ui.timerContainer.classList.remove('bg-white/90', 'border-blue-400', 'text-blue-600');
                 ui.timerContainer.classList.add('animate-bounce', 'bg-red-100', 'border-red-500', 'text-red-600');
             }
 
-            // 타임오버 (배드엔딩 처리)
             if (remainingMs <= 0 && !isGameOver) {
                 gameFail();
                 return;
@@ -721,7 +766,6 @@
             const currentLeft = startLeft + ((endLeft - startLeft) * progressRatio);
             ui.playerBee.style.left = `calc(${currentLeft}% - 3rem)`;
 
-            // 성공 체크 (타임오버 되기 전에 도착)
             if (progressPercent >= 100 && !isGameOver) {
                 gameWin();
                 return;
@@ -733,7 +777,6 @@
         animationFrameId = requestAnimationFrame(loop);
     }
 
-    // 성공 시 처리
     function gameWin() {
         isPlaying = false;
         stopMic();
@@ -751,7 +794,6 @@
         }, 1000);
     }
 
-    // 실패 시 처리 (타임오버)
     function gameFail() {
         isPlaying = false;
         isGameOver = true;
@@ -777,3 +819,5 @@
 </script>
 </body>
 </html>
+
+
