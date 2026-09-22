@@ -1,0 +1,2420 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>축산물판매업 이력제 비서</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  /* ══════════════════════════════════
+     DESIGN TOKENS
+  ══════════════════════════════════ */
+  :root {
+    --ai-navy:    #0F172A;
+    --ai-primary: #38BDF8;
+    --ai-accent:  #22C55E;
+    --ai-surface: #FFFFFF;
+    --ai-bg:      #F1F5F9;
+    --ai-text:    #1E293B;
+    --ai-muted:   #64748B;
+    --ai-glow:    0 0 20px rgba(56, 189, 248, 0.5);
+    --radius:     24px;
+    --shadow:     0 12px 40px -8px rgba(0, 0, 0, 0.1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', sans-serif; }
+  body {
+    background: var(--ai-bg);
+    color: var(--ai-text);
+    min-height: 100vh;
+    padding-bottom: 90px;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ══════════════════════════════════
+     ANIMATIONS
+  ══════════════════════════════════ */
+  @keyframes slideUpFade {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes popIn {
+    0% { transform: scale(0.9); opacity: 0; }
+    70% { transform: scale(1.05); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .animate-stagger > * { opacity: 0; }
+  .animate-stagger.loaded > * { animation: slideUpFade 0.5s forwards; }
+  .animate-stagger.loaded > *:nth-child(1) { animation-delay: 0.05s; }
+  .animate-stagger.loaded > *:nth-child(2) { animation-delay: 0.10s; }
+  .animate-stagger.loaded > *:nth-child(3) { animation-delay: 0.15s; }
+  .animate-stagger.loaded > *:nth-child(4) { animation-delay: 0.20s; }
+  .animate-stagger.loaded > *:nth-child(5) { animation-delay: 0.25s; }
+  .animate-stagger.loaded > *:nth-child(n+6) { animation-delay: 0.3s; }
+
+  /* ══════════════════════════════════
+     HEADER
+  ══════════════════════════════════ */
+  header {
+    background: var(--ai-navy);
+    padding: 0 20px;
+    position: sticky; top: 0; z-index: 1000;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px;
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon {
+    width: 36px; height: 36px; border-radius: 12px;
+    background: var(--ai-primary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; box-shadow: var(--ai-glow);
+    animation: pulseGlow 2s infinite;
+  }
+  @keyframes pulseGlow { 0% { box-shadow: 0 0 5px var(--ai-primary); } 50% { box-shadow: 0 0 20px var(--ai-primary); } 100% { box-shadow: 0 0 5px var(--ai-primary); } }
+  .logo-text { font-weight: 800; font-size: 18px; letter-spacing: -0.5px; }
+
+  .screen {
+    display: none;
+    max-width: 640px;
+    margin: 0 auto;
+    min-height: calc(100vh - 139px);
+  }
+  .screen.active { display: block; }
+
+  .content-wrap { padding: 0 20px; width: 100%; }
+
+  .page-head { padding: 24px 0 15px; display: flex; align-items: center; gap: 15px; }
+  .page-head .back { font-size: 26px; cursor: pointer; color: var(--ai-navy); line-height: 1; }
+  .page-head h2 { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+
+  /* ══════════════════════════════════
+     CORE DASHBOARD
+  ══════════════════════════════════ */
+  .dashboard-hero {
+    background: var(--ai-navy);
+    padding: 40px 20px 60px;
+    color: #fff;
+    text-align: center;
+    border-radius: 0 0 40px 40px;
+    margin-bottom: -40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .dashboard-hero::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.2), transparent);
+  }
+
+  .ring-container { position: relative; width: 150px; height: 150px; margin: 0 auto 20px; }
+  .ring-svg { transform: rotate(-90deg); width: 150px; height: 150px; }
+  .ring-bg { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 12; }
+  .ring-fill {
+    fill: none; stroke: var(--ai-primary); stroke-width: 12;
+    stroke-linecap: round; stroke-dasharray: 440; stroke-dashoffset: 440;
+    transition: stroke-dashoffset 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    filter: drop-shadow(0 0 8px var(--ai-primary));
+  }
+  .ring-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .ring-pct { font-size: 38px; font-weight: 800; line-height: 1; }
+  .ring-label { font-size: 13px; opacity: 0.6; margin-top: 4px; }
+
+  .hero-msg { font-size: 20px; font-weight: 800; margin-bottom: 8px; animation: slideUpFade 0.6s ease-out; }
+  .hero-sub { font-size: 13px; opacity: 0.5; animation: slideUpFade 0.8s ease-out; }
+
+  /* ══════════════════════════════════
+     COMPONENTS
+  ══════════════════════════════════ */
+  .notice-section {
+    background: #fff; border-radius: 18px; padding: 14px 20px;
+    display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow);
+    font-size: 13px; margin-bottom: 12px; cursor: pointer;
+    border: 1px solid transparent; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .notice-section:hover { transform: translateY(-3px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15); }
+  .notice-tag { color: #E11D48; font-weight: 800; }
+  .notice-content { flex: 1; color: var(--ai-text); font-weight: 600; }
+
+  .contact-section {
+    background: linear-gradient(135deg, #F8FAFC, #F1F5F9);
+    border: 1px dashed #CBD5E1;
+    border-radius: 18px; padding: 16px 20px; margin-bottom: 24px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .contact-icon { font-size: 24px; }
+  .contact-text h4 { font-size: 12px; color: var(--ai-muted); font-weight: 600; margin-bottom: 2px; }
+  .contact-text p { font-size: 14px; font-weight: 700; color: var(--ai-navy); }
+
+  /* SEARCH UI */
+  .search-wrap { margin-bottom: 20px; }
+  .search-box {
+    background: #fff; border-radius: 20px; padding: 10px 10px 10px 22px;
+    display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow);
+    border: 1.5px solid #E2E8F0; transition: border-color 0.3s;
+  }
+  .search-box:focus-within { border-color: var(--ai-primary); }
+  .search-box input { border: none; outline: none; flex: 1; font-size: 16px; background: transparent; min-width: 0; }
+  .search-btn {
+    background: var(--ai-primary); color: #fff; border: none;
+    border-radius: 14px; padding: 12px 20px; font-weight: 700; cursor: pointer;
+    transition: all 0.2s; flex-shrink: 0;
+  }
+  .search-btn:active { transform: scale(0.95); }
+
+  .quick-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .q-tag {
+    background: #fff; border: 1.5px solid #E2E8F0; border-radius: 20px;
+    padding: 8px 14px; font-size: 13px; color: var(--ai-muted); cursor: pointer;
+    transition: all 0.25s; white-space: nowrap;
+  }
+  .q-tag:hover { border-color: var(--ai-primary); color: var(--ai-primary); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(56, 189, 248, 0.1); }
+  .q-tag.on { background: var(--ai-navy); border-color: var(--ai-navy); color: #fff; font-weight: 700; }
+
+  /* MENU GRID */
+  .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .menu-card {
+    background: var(--ai-surface); border-radius: var(--radius);
+    padding: 24px 20px; box-shadow: var(--shadow); cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.8); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex; flex-direction: column; align-items: flex-start; gap: 14px;
+  }
+  .menu-card:hover { transform: translateY(-5px); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); border-color: var(--ai-primary); }
+  .menu-card:active { transform: scale(0.97); }
+  .menu-info h3 { font-size: 17px; font-weight: 800; margin-bottom: 4px; }
+  .menu-info p { font-size: 12.5px; color: var(--ai-muted); font-weight: 500; }
+
+  .icon-circle {
+    width: 52px; height: 52px; border-radius: 16px;
+    display: flex; align-items: center; justify-content: center; font-size: 24px;
+    transition: transform 0.3s ease;
+  }
+  .menu-card:hover .icon-circle { transform: rotate(10deg) scale(1.1); }
+
+  /* DATA LIST */
+  .data-item {
+    background: #fff; border-radius: 18px; padding: 22px; margin-bottom: 14px;
+    box-shadow: var(--shadow); display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer; transition: 0.3s; border: 1px solid transparent; gap: 12px;
+  }
+  .data-item:hover { transform: translateX(5px); border-color: var(--ai-primary); }
+  .data-info h4 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .data-info p { font-size: 13px; color: var(--ai-muted); }
+
+  /* ══════════════════════════════════
+     FAQ (자주 묻는 질문)
+  ══════════════════════════════════ */
+  .faq-source {
+    background: #fff; border-left: 6px solid var(--ai-primary);
+    border-radius: 14px; padding: 14px 18px; margin-bottom: 18px;
+    font-size: 12.5px; color: var(--ai-muted); line-height: 1.6; box-shadow: var(--shadow);
+  }
+  .faq-source b { color: var(--ai-navy); }
+
+  .faq-count { font-size: 13px; color: var(--ai-muted); font-weight: 600; margin: 4px 0 12px; }
+  .faq-count b { color: var(--ai-primary); }
+
+  .faq-item {
+    background: #fff; border-radius: 18px; margin-bottom: 12px;
+    box-shadow: var(--shadow); border: 1px solid transparent;
+    overflow: hidden; transition: border-color 0.25s;
+  }
+  .faq-item.open { border-color: var(--ai-primary); }
+  .faq-q {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 20px; cursor: pointer;
+  }
+  .faq-q .mark {
+    width: 26px; height: 26px; border-radius: 9px; flex-shrink: 0;
+    background: #E0F2FE; color: #0369A1; font-weight: 800; font-size: 14px;
+    display: flex; align-items: center; justify-content: center; margin-top: 1px;
+  }
+  .faq-q .txt { flex: 1; }
+  .faq-q h4 { font-size: 15.5px; font-weight: 700; line-height: 1.5; letter-spacing: -0.3px; }
+  .faq-cat {
+    display: inline-block; margin-top: 8px; padding: 3px 10px;
+    background: #F1F5F9; color: var(--ai-muted);
+    border-radius: 8px; font-size: 11px; font-weight: 700;
+  }
+  .faq-arrow { color: #CBD5E1; font-size: 13px; flex-shrink: 0; transition: transform 0.3s; margin-top: 4px; }
+  .faq-item.open .faq-arrow { transform: rotate(90deg); color: var(--ai-primary); }
+
+  .faq-a { display: none; padding: 0 20px 22px 58px; }
+  .faq-item.open .faq-a { display: block; animation: slideUpFade 0.35s ease-out; }
+  .faq-a .a-body {
+    background: var(--ai-bg); border-left: 6px solid var(--ai-accent);
+    border-radius: 14px; padding: 18px;
+    font-size: 14.5px; line-height: 1.75; color: var(--ai-text); white-space: pre-line;
+  }
+  .faq-a .a-ref { margin-top: 10px; font-size: 11.5px; color: var(--ai-muted); line-height: 1.5; }
+  .faq-a .a-keys { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .faq-a .a-keys span {
+    background: #fff; border: 1px solid #E2E8F0; border-radius: 8px;
+    padding: 4px 9px; font-size: 11px; color: var(--ai-muted); cursor: pointer;
+  }
+  .faq-a .a-keys span:hover { border-color: var(--ai-primary); color: var(--ai-primary); }
+
+  .hl { background: #FEF08A; border-radius: 3px; padding: 0 1px; }
+
+  .empty-msg { text-align: center; padding: 50px 20px; color: #94A3B8; font-size: 14px; line-height: 1.7; }
+
+  /* ══════════════════════════════════
+     축산유통의 이해 (교육)
+  ══════════════════════════════════ */
+  .edu-intro {
+    background: var(--ai-navy); color: #fff; border-radius: 22px;
+    padding: 24px 22px; margin-bottom: 18px; position: relative; overflow: hidden;
+  }
+  .edu-intro::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(circle at top right, rgba(56,189,248,0.25), transparent 60%);
+  }
+  .edu-intro h3 { font-size: 19px; font-weight: 800; margin-bottom: 8px; position: relative; }
+  .edu-intro p { font-size: 13.5px; line-height: 1.75; opacity: 0.8; position: relative; }
+
+  .edu-card {
+    background: #fff; border-radius: 20px; margin-bottom: 12px;
+    box-shadow: var(--shadow); border: 1px solid transparent; overflow: hidden;
+    transition: border-color 0.25s;
+  }
+  .edu-card.open { border-color: var(--ai-primary); }
+  .edu-head { display: flex; align-items: center; gap: 14px; padding: 20px; cursor: pointer; }
+  .edu-ico {
+    width: 46px; height: 46px; border-radius: 15px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 21px;
+  }
+  .edu-t { flex: 1; min-width: 0; }
+  .edu-t h4 { font-size: 16px; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 3px; }
+  .edu-t p { font-size: 12.5px; color: var(--ai-muted); font-weight: 500; }
+  .edu-arrow { color: #CBD5E1; font-size: 13px; transition: transform 0.3s; flex-shrink: 0; }
+  .edu-card.open .edu-arrow { transform: rotate(90deg); color: var(--ai-primary); }
+
+  .edu-body { display: none; padding: 0 20px 24px; }
+  .edu-card.open .edu-body { display: block; animation: slideUpFade 0.35s ease-out; }
+  .edu-body p { font-size: 14px; line-height: 1.8; color: var(--ai-text); margin-bottom: 14px; }
+  .edu-body p:last-child { margin-bottom: 0; }
+  .edu-body b { color: var(--ai-navy); font-weight: 800; }
+  .edu-body .muted { color: var(--ai-muted); font-size: 12px; line-height: 1.7; }
+
+  .edu-sub {
+    font-size: 12px; font-weight: 800; color: var(--ai-muted); letter-spacing: 0.4px;
+    margin: 20px 0 10px; display: flex; align-items: center; gap: 7px;
+  }
+  .edu-sub .bar { width: 4px; height: 13px; background: var(--ai-primary); border-radius: 2px; }
+
+  /* 단계 흐름 */
+  .flow { display: flex; align-items: stretch; gap: 6px; margin-bottom: 16px; }
+  .flow-step {
+    flex: 1; background: var(--ai-bg); border-radius: 13px; padding: 12px 6px;
+    text-align: center; position: relative;
+  }
+  .flow-step .n { font-size: 10.5px; font-weight: 800; color: var(--ai-primary); letter-spacing: 0.5px; }
+  .flow-step .t { font-size: 13.5px; font-weight: 800; color: var(--ai-navy); margin: 4px 0 3px; }
+  .flow-step .d { font-size: 10.5px; color: var(--ai-muted); line-height: 1.4; }
+  .flow-arrow { align-self: center; color: #CBD5E1; font-size: 11px; flex-shrink: 0; }
+
+  /* 정의형 리스트 */
+  .def { border-left: 4px solid var(--ai-primary); background: var(--ai-bg); border-radius: 0 13px 13px 0; padding: 14px 16px; margin-bottom: 10px; }
+  .def h5 { font-size: 14px; font-weight: 800; color: var(--ai-navy); margin-bottom: 5px; }
+  .def p { font-size: 13px; line-height: 1.7; color: var(--ai-text); margin: 0; }
+  .def.g { border-left-color: var(--ai-accent); }
+  .def.o { border-left-color: #F59E0B; }
+
+  /* 2열 포인트 그리드 */
+  .pt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+  .pt {
+    background: var(--ai-bg); border-radius: 13px; padding: 13px 12px;
+  }
+  .pt .h { font-size: 12.5px; font-weight: 800; color: var(--ai-navy); margin-bottom: 4px; line-height: 1.35; }
+  .pt .b { font-size: 11.5px; color: var(--ai-muted); line-height: 1.55; }
+
+  /* 수치 타일 */
+  .stat-row { display: flex; gap: 9px; margin-bottom: 14px; }
+  .stat {
+    flex: 1; background: var(--ai-bg); border-radius: 14px; padding: 14px 10px; text-align: center;
+  }
+  .stat .v { font-size: 20px; font-weight: 800; color: var(--ai-navy); line-height: 1.1; letter-spacing: -0.5px; }
+  .stat .k { font-size: 11px; color: var(--ai-muted); font-weight: 600; margin-top: 5px; line-height: 1.4; }
+
+  /* 히어로 수치 */
+  .hero-fig { text-align: center; padding: 6px 0 14px; }
+  .hero-fig .v { font-size: 46px; font-weight: 800; color: var(--ai-navy); letter-spacing: -2px; line-height: 1; }
+  .hero-fig .k { font-size: 12.5px; color: var(--ai-muted); font-weight: 600; margin-top: 7px; }
+
+  /* 차트 : 100% 누적 막대 */
+  .cost-bar { display: flex; height: 34px; border-radius: 9px; overflow: hidden; gap: 2px; background: #fff; margin-bottom: 12px; }
+  .cost-bar span { display: block; height: 100%; }
+  .cost-legend { display: flex; flex-direction: column; gap: 7px; }
+  .cl-row { display: flex; align-items: center; gap: 9px; font-size: 12.5px; }
+  .cl-row .sw { width: 12px; height: 12px; border-radius: 4px; flex-shrink: 0; }
+  .cl-row .nm { flex: 1; color: var(--ai-text); font-weight: 600; }
+  .cl-row .vl { font-weight: 800; color: var(--ai-navy); font-variant-numeric: tabular-nums; }
+
+  /* 차트 : 가로 막대 */
+  .hbar { margin-bottom: 11px; }
+  .hbar .lb { display: flex; justify-content: space-between; align-items: baseline; font-size: 12.5px; margin-bottom: 5px; }
+  .hbar .lb .n { font-weight: 700; color: var(--ai-text); }
+  .hbar .lb .v { font-weight: 800; color: var(--ai-navy); font-variant-numeric: tabular-nums; }
+  .hbar .tr { height: 12px; background: #E2E8F0; border-radius: 6px; overflow: hidden; }
+  .hbar .fl { height: 100%; border-radius: 6px; }
+
+  .edu-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+  .edu-table th {
+    background: #E2E8F0; color: var(--ai-navy); font-weight: 800;
+    padding: 9px 6px; border: 1px solid #CBD5E1; text-align: center; font-size: 11.5px;
+  }
+  .edu-table td { padding: 9px 7px; border: 1px solid #CBD5E1; background: #fff; line-height: 1.5; }
+  .edu-table td.c { text-align: center; font-variant-numeric: tabular-nums; }
+  .edu-table td.hd { background: #F8FAFC; font-weight: 800; color: var(--ai-navy); text-align: center; }
+
+  .edu-src { font-size: 11px; color: var(--ai-muted); line-height: 1.6; margin-top: 11px; }
+
+  .edu-close {
+    background: linear-gradient(135deg, var(--ai-navy), #1e3a8a); color: #fff;
+    border-radius: 20px; padding: 22px; margin-top: 6px; line-height: 1.8; font-size: 13.5px;
+  }
+  .edu-close b { color: var(--ai-primary); }
+
+  /* ══════════════════════════════════
+     자체위생관리 기준 점검표
+  ══════════════════════════════════ */
+  .insp-head {
+    background: #fff; border-radius: 18px; padding: 16px 18px; margin-bottom: 12px;
+    box-shadow: var(--shadow); border-left: 6px solid var(--ai-navy);
+  }
+  .insp-head .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .insp-date { font-size: 16px; font-weight: 800; color: var(--ai-navy); }
+  .insp-badge {
+    background: #E0F2FE; color: #0369A1; border-radius: 8px;
+    padding: 3px 10px; font-size: 11px; font-weight: 800;
+  }
+  .insp-name { display: flex; align-items: center; gap: 9px; margin-top: 12px; }
+  .insp-name label { font-size: 12.5px; color: var(--ai-muted); font-weight: 700; flex-shrink: 0; }
+  .insp-name input {
+    flex: 1; min-width: 0; border: 1.5px solid #E2E8F0; border-radius: 12px;
+    padding: 9px 14px; font-size: 15px; outline: none; background: #F8FAFC;
+    font-family: inherit; color: var(--ai-text);
+  }
+  .insp-name input:focus { border-color: var(--ai-primary); background: #fff; }
+
+  .insp-legend {
+    background: #fff; border-radius: 14px; padding: 13px 16px; margin-bottom: 4px;
+    font-size: 11.5px; color: var(--ai-muted); line-height: 1.75; box-shadow: var(--shadow);
+  }
+  .insp-legend b { color: var(--ai-navy); }
+
+  .cat-head {
+    font-size: 12px; font-weight: 800; color: var(--ai-muted);
+    margin: 22px 0 10px; letter-spacing: 0.5px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .cat-head .bar { width: 4px; height: 14px; background: var(--ai-primary); border-radius: 2px; }
+
+  .check-item {
+    background: #fff; border-radius: 18px; padding: 18px 18px 14px; margin-bottom: 11px;
+    box-shadow: var(--shadow); border-left: 6px solid #E2E8F0;
+    transition: border-color 0.3s, background 0.3s;
+  }
+  .check-item[data-v="O"] { border-left-color: var(--ai-accent); background: #F0FDF4; }
+  .check-item[data-v="A"] { border-left-color: #F59E0B; background: #FFFBEB; }
+  .check-item[data-v="X"] { border-left-color: #EF4444; background: #FEF2F2; }
+
+  .check-top { display: flex; gap: 11px; align-items: flex-start; }
+  .check-no {
+    width: 24px; height: 24px; border-radius: 8px; flex-shrink: 0;
+    background: var(--ai-navy); color: #fff; font-size: 12px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center; margin-top: 1px;
+  }
+  .check-txt { font-size: 14.5px; font-weight: 600; line-height: 1.55; color: var(--ai-text); flex: 1; }
+
+  .rate-row { display: flex; gap: 7px; margin-top: 13px; }
+  .rate-btn {
+    flex: 1; border: 1.5px solid #E2E8F0; background: #fff; border-radius: 12px;
+    padding: 10px 4px; font-size: 13px; font-weight: 700; color: var(--ai-muted);
+    cursor: pointer; transition: all 0.18s; font-family: inherit;
+  }
+  .rate-btn:active { transform: scale(0.95); }
+  .rate-btn.sel-O { background: var(--ai-accent); border-color: var(--ai-accent); color: #fff; }
+  .rate-btn.sel-A { background: #F59E0B; border-color: #F59E0B; color: #fff; }
+  .rate-btn.sel-X { background: #EF4444; border-color: #EF4444; color: #fff; }
+
+  .action-box {
+    display: none; background: #fff; border-radius: 18px; padding: 20px;
+    margin: 18px 0 12px; box-shadow: var(--shadow); border-left: 6px solid #F59E0B;
+  }
+  .action-box.show { display: block; animation: slideUpFade 0.35s ease-out; }
+  .action-box h4 { font-size: 14.5px; font-weight: 800; margin-bottom: 5px; color: var(--ai-navy); }
+  .action-box .sub { font-size: 12px; color: var(--ai-muted); margin-bottom: 14px; line-height: 1.6; }
+  .act-item {
+    display: flex; align-items: flex-start; gap: 11px; padding: 11px 13px; margin-bottom: 8px;
+    border: 1.5px solid #E2E8F0; border-radius: 12px; cursor: pointer; transition: all 0.2s;
+    font-size: 13.5px; line-height: 1.5;
+  }
+  .act-item.on { border-color: var(--ai-accent); background: #F0FDF4; font-weight: 600; }
+  .act-item .box {
+    width: 20px; height: 20px; border-radius: 6px; border: 2px solid #CBD5E1; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 12px; color: transparent;
+    transition: all 0.2s; margin-top: 1px;
+  }
+  .act-item.on .box { background: var(--ai-accent); border-color: var(--ai-accent); color: #fff; }
+
+  .summary-bar { display: flex; gap: 8px; margin: 18px 0 4px; }
+  .sum-cell {
+    flex: 1; background: #fff; border-radius: 14px; padding: 13px 6px;
+    text-align: center; box-shadow: var(--shadow);
+  }
+  .sum-cell .n { font-size: 21px; font-weight: 800; line-height: 1.1; }
+  .sum-cell .l { font-size: 11px; color: var(--ai-muted); font-weight: 600; margin-top: 3px; }
+
+  .success-banner {
+    display: none;
+    background: linear-gradient(135deg, var(--ai-navy), #1e3a8a);
+    color: #fff; padding: 16px; border-radius: 16px; text-align: center;
+    font-weight: 800; margin: 14px 0 4px; line-height: 1.5;
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    box-shadow: 0 10px 25px -5px rgba(30, 64, 175, 0.3);
+  }
+
+  .saved-note {
+    background: #ECFDF5; border: 1px solid #A7F3D0; color: #047857;
+    border-radius: 12px; padding: 12px 15px; font-size: 12.5px; font-weight: 600;
+    margin-top: 12px; display: none; line-height: 1.6;
+  }
+  .saved-note.show { display: block; animation: slideUpFade 0.3s ease-out; }
+
+  .warn-note {
+    background: #FFFBEB; border: 1.5px solid #FDE68A; border-left: 6px solid #F59E0B;
+    border-radius: 14px; padding: 14px 16px; margin-bottom: 12px;
+    font-size: 12.5px; line-height: 1.75; color: #78350F;
+  }
+  .warn-note b { color: #92400E; }
+
+  /* ══════════════════════════════════
+     유통단계 매뉴얼
+  ══════════════════════════════════ */
+  .stage-tabs {
+    display: flex; background: #E2E8F0; border-radius: 16px; padding: 4px; gap: 4px; margin-bottom: 14px;
+  }
+  .stage-tab {
+    flex: 1; border: none; background: transparent; border-radius: 12px;
+    padding: 11px 4px; font-size: 13.5px; font-weight: 700; color: var(--ai-muted);
+    cursor: pointer; transition: all 0.2s; font-family: inherit;
+  }
+  .stage-tab.on { background: #fff; color: var(--ai-navy); box-shadow: 0 2px 8px rgba(15,23,42,0.1); }
+
+  .stage-intro {
+    background: #fff; border-radius: 16px; padding: 14px 16px; margin-bottom: 14px;
+    box-shadow: var(--shadow); font-size: 12.5px; line-height: 1.7; color: var(--ai-muted);
+    border-left: 6px solid var(--ai-primary);
+  }
+  .stage-intro b { color: var(--ai-navy); }
+  .stage-intro.sale { border-left-color: var(--ai-accent); }
+
+  .man-item {
+    background: #fff; border-radius: 18px; margin-bottom: 12px;
+    box-shadow: var(--shadow); border: 1px solid transparent; overflow: hidden; transition: border-color 0.25s;
+  }
+  .man-item.open { border-color: var(--ai-primary); }
+  .man-q { display: flex; align-items: flex-start; gap: 12px; padding: 18px 18px 16px; cursor: pointer; }
+  .man-no {
+    min-width: 30px; height: 26px; border-radius: 9px; flex-shrink: 0; padding: 0 6px;
+    font-size: 11.5px; font-weight: 800; display: flex; align-items: center; justify-content: center; margin-top: 1px;
+  }
+  .man-no.pack { background: #E0F2FE; color: #0369A1; }
+  .man-no.sale { background: #DCFCE7; color: #15803D; }
+  .man-q .txt { flex: 1; min-width: 0; }
+  .man-q h4 { font-size: 15.5px; font-weight: 700; line-height: 1.5; letter-spacing: -0.3px; }
+  .man-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+  .man-tag { padding: 3px 9px; background: #F1F5F9; color: var(--ai-muted); border-radius: 7px; font-size: 11px; font-weight: 700; }
+  .man-snip { font-size: 12.5px; color: var(--ai-muted); margin-top: 7px; line-height: 1.55; }
+  .man-item .faq-arrow { margin-top: 5px; }
+  .man-item.open .faq-arrow { transform: rotate(90deg); color: var(--ai-primary); }
+
+  .man-a { display: none; padding: 0 18px 20px; }
+  .man-item.open .man-a { display: block; animation: slideUpFade 0.35s ease-out; }
+  .man-body { font-size: 14px; line-height: 1.75; color: var(--ai-text); }
+  .man-body p { margin-bottom: 10px; }
+  .man-body b { color: var(--ai-navy); font-weight: 800; }
+  .man-body ul { list-style: none; margin: 0 0 10px; padding: 0; }
+  .man-body li { position: relative; padding-left: 15px; margin-bottom: 6px; }
+  .man-body li::before { content: ''; position: absolute; left: 3px; top: 10px; width: 5px; height: 5px; border-radius: 50%; background: var(--ai-primary); }
+  .man-body .box {
+    background: var(--ai-bg); border-radius: 13px; padding: 13px 15px; margin: 10px 0; font-size: 13px; line-height: 1.7;
+  }
+  .man-body .box h5 { font-size: 13px; font-weight: 800; color: var(--ai-navy); margin-bottom: 5px; }
+  .man-body .warn { background: #FFFBEB; border-left: 4px solid #F59E0B; }
+  .man-body table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin: 10px 0; }
+  .man-body th { background: #E2E8F0; color: var(--ai-navy); font-weight: 800; padding: 8px 6px; border: 1px solid #CBD5E1; }
+  .man-body td { padding: 8px 7px; border: 1px solid #CBD5E1; line-height: 1.5; vertical-align: top; }
+  .man-body td.hd { background: #F8FAFC; font-weight: 800; color: var(--ai-navy); text-align: center; white-space: nowrap; }
+  .man-body td.c { text-align: center; }
+
+  .steps { counter-reset: st; margin: 6px 0 10px; }
+  .step { display: flex; gap: 11px; padding-bottom: 12px; position: relative; }
+  .step:not(:last-child)::after { content: ''; position: absolute; left: 13px; top: 28px; bottom: 0; width: 2px; background: #E2E8F0; }
+  .step .n {
+    width: 28px; height: 28px; border-radius: 50%; background: var(--ai-navy); color: #fff; flex-shrink: 0;
+    font-size: 12.5px; font-weight: 800; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1;
+  }
+  .step .c { flex: 1; font-size: 13px; line-height: 1.6; padding-top: 3px; }
+  .step .c b { display: block; font-size: 14px; margin-bottom: 2px; }
+
+  .law-links {
+    margin-top: 14px; border-top: 1px dashed #CBD5E1; padding-top: 13px;
+  }
+  .law-links .h { font-size: 12px; font-weight: 800; color: var(--ai-navy); margin-bottom: 8px; }
+  .law-links .list { display: flex; flex-direction: column; gap: 7px; }
+  .law-link {
+    display: flex; align-items: center; gap: 10px; text-decoration: none;
+    background: #F8FAFC; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 10px 13px;
+    color: var(--ai-text); font-size: 12.5px; font-weight: 600; line-height: 1.45; transition: all 0.2s;
+  }
+  .law-link:hover, .law-link:active { border-color: var(--ai-primary); background: #F0F9FF; }
+  .law-link .ic { font-size: 15px; flex-shrink: 0; }
+  .law-link .t { flex: 1; min-width: 0; }
+  .law-link .t small { display: block; color: var(--ai-muted); font-weight: 500; font-size: 11px; margin-top: 1px; }
+  .law-link .go { color: var(--ai-primary); font-size: 12px; font-weight: 800; flex-shrink: 0; }
+  .form-note { font-size: 11px; color: var(--ai-muted); margin-top: 8px; line-height: 1.6; }
+  .man-src { font-size: 11px; color: var(--ai-muted); margin-top: 10px; line-height: 1.6; }
+  .man-keys { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .man-keys span {
+    background: #fff; border: 1px solid #E2E8F0; border-radius: 8px;
+    padding: 4px 9px; font-size: 11px; color: var(--ai-muted); cursor: pointer;
+  }
+  .man-keys span:hover { border-color: var(--ai-primary); color: var(--ai-primary); }
+
+  /* NAVIGATION */
+  nav {
+    position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(15px); height: 75px; border-top: 1px solid #E2E8F0;
+    display: flex; z-index: 1000; padding-bottom: env(safe-area-inset-bottom);
+  }
+  .nav-btn {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: var(--ai-muted); font-size: 12px; font-weight: 700; gap: 4px; border: none;
+    background: none; cursor: pointer; transition: all 0.3s;
+  }
+  .nav-btn.active { color: var(--ai-navy); transform: translateY(-4px); }
+  .nav-icon { font-size: 20px; transition: transform 0.3s; }
+  .nav-btn.active .nav-icon { transform: scale(1.2); }
+
+  .btn {
+    flex: 1; height: 58px; border-radius: 18px; border: none; font-size: 16px; font-weight: 800;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+    transition: all 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  .btn-main { background: var(--ai-navy); color: #fff; }
+  .btn-sub { background: #E2E8F0; color: var(--ai-text); box-shadow: none; }
+  .btn:active { transform: scale(0.96); opacity: 0.9; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🥩</div>
+    <div class="logo-text">축산물판매업 비서</div>
+  </div>
+  <div style="font-size: 12px; opacity: 0.9; font-weight: 700;">축산물품질평가원</div>
+</header>
+
+<!-- ══════════ HOME ══════════ -->
+<div class="screen active" id="sc-home">
+  <div class="dashboard-hero">
+    <div class="ring-container">
+      <svg class="ring-svg">
+        <circle class="ring-bg" cx="75" cy="75" r="70"></circle>
+        <circle class="ring-fill" id="ring-fill" cx="75" cy="75" r="70"></circle>
+      </svg>
+      <div class="ring-text">
+        <div class="ring-pct" id="ring-pct">0%</div>
+        <div class="ring-label">오늘 위생점검</div>
+      </div>
+    </div>
+    <div class="hero-msg" id="hero-msg">오늘의 위생점검을 시작하세요.</div>
+    <div class="hero-sub">소상공인 축산물판매업자 맞춤형 법규 안내 서비스</div>
+  </div>
+
+  <div class="content-wrap animate-stagger" id="home-stagger">
+    <div class="notice-section" onclick="window.open('https://www.mtrace.go.kr', '_blank')">
+      <span class="notice-tag">NOTICE</span>
+      <div class="notice-content">축산물이력제 홈페이지에서 이력번호를 바로 조회할 수 있습니다</div>
+      <span style="font-size: 12px; color: #CBD5E1;">❯</span>
+    </div>
+
+    <div class="contact-section">
+      <div class="contact-icon">📞</div>
+      <div class="contact-text">
+        <h4>축산물이력제 상담 (이력지원실)</h4>
+        <p>축산물품질평가원 1577-2633</p>
+      </div>
+    </div>
+
+    <div class="menu-grid">
+      <div class="menu-card" onclick="goto('sc-manual')">
+        <div class="icon-circle" style="background: #FFE4E6; color: #E11D48;">📘</div>
+        <div class="menu-info">
+          <h3>유통단계<br>매뉴얼</h3>
+          <p>포장처리·판매 업무</p>
+        </div>
+      </div>
+      <div class="menu-card" onclick="goto('sc-faq')">
+        <div class="icon-circle" style="background: #E0F2FE; color: #0369A1;">❓</div>
+        <div class="menu-info">
+          <h3>자주 묻는 질문</h3>
+          <p>판매단계 Q&amp;A 검색</p>
+        </div>
+      </div>
+      <div class="menu-card" onclick="goto('sc-checklist')">
+        <div class="icon-circle" style="background: #DCFCE7; color: #15803D;">✅</div>
+        <div class="menu-info">
+          <h3>자체위생관리<br>점검</h3>
+          <p>매일 점검 · 3개월 보관</p>
+        </div>
+      </div>
+      <div class="menu-card" onclick="goto('sc-edu')">
+        <div class="icon-circle" style="background: #FEF3C7; color: #B45309;">📚</div>
+        <div class="menu-info">
+          <h3>축산유통의<br>이해</h3>
+          <p>알기 쉬운 교육 자료</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ 유통단계 매뉴얼 ══════════ -->
+<div class="screen" id="sc-manual">
+  <div class="content-wrap">
+    <div class="page-head">
+      <span class="back" onclick="goto('sc-home')">←</span>
+      <h2>유통단계 매뉴얼</h2>
+    </div>
+
+    <div class="faq-source">
+      포장처리·판매 단계에서 지켜야 할 이력관리 업무를 축종(소·돼지·닭·오리·계란) 공통으로 정리했습니다.
+      서식은 법령 원문으로 바로 연결됩니다.<br>
+      <b>출처 : 축산물품질평가원 「축산물이력제 업무편람(2025)」 유통단계 매뉴얼</b>
+    </div>
+
+    <div class="stage-tabs" id="stage-tabs"></div>
+
+    <div class="search-wrap">
+      <div class="search-box">
+        <input type="text" id="man-input" placeholder="검색 (예: 묶음번호, 5일, 라벨)" oninput="filterManual()">
+        <button class="search-btn" onclick="filterManual()">검색</button>
+      </div>
+      <div class="quick-tags" id="man-keys"></div>
+    </div>
+
+    <div class="stage-intro" id="stage-intro"></div>
+    <div class="faq-count" id="man-count"></div>
+    <div id="man-list" class="animate-stagger"></div>
+  </div>
+</div>
+
+<!-- ══════════ FAQ ══════════ -->
+<div class="screen" id="sc-faq">
+  <div class="content-wrap">
+    <div class="page-head">
+      <span class="back" onclick="goto('sc-home')">←</span>
+      <h2>자주 묻는 질문</h2>
+    </div>
+
+    <div class="faq-source">
+      판매단계에서 실제로 가장 많이 들어오는 질문을 축종(소·돼지·닭·오리·계란)별로 모아
+      중복 내용은 하나로 통합해 정리했습니다.<br>
+      <b>출처 : 축산물품질평가원 「축산물이력제 업무편람(2025)」</b>
+    </div>
+
+    <div class="search-wrap">
+      <div class="search-box">
+        <input type="text" id="faq-input" placeholder="궁금한 내용 검색 (예: 냉장고, 과태료)" oninput="filterFaq()">
+        <button class="search-btn" onclick="filterFaq()">검색</button>
+      </div>
+      <div class="quick-tags" id="faq-cats"></div>
+      <div class="quick-tags" id="faq-keys" style="margin-top:8px;"></div>
+    </div>
+
+    <div class="faq-count" id="faq-count"></div>
+    <div id="faq-list" class="animate-stagger"></div>
+  </div>
+</div>
+
+<!-- ══════════ 축산유통의 이해 ══════════ -->
+<div class="screen" id="sc-edu">
+  <div class="content-wrap">
+    <div class="page-head">
+      <span class="back" onclick="goto('sc-home')">←</span>
+      <h2>축산유통의 이해</h2>
+    </div>
+
+    <div class="edu-intro">
+      <h3>내가 파는 고기는 어디서 왔을까</h3>
+      <p>등급제와 이력제는 모두 축산물이 <b>농장에서 식탁까지</b> 이동하는 유통 과정 위에서 작동합니다.
+      유통의 구조를 알면 가격이 어떻게 정해지는지, 내 매장이 어느 자리에 있는지가 보입니다.</p>
+    </div>
+
+    <div id="edu-list"></div>
+
+    <div class="edu-close">
+      유통 경로가 짧아지고 거래가 온라인·직거래로 옮겨갈수록, 눈으로 품질과 출처를 확인할 기회는 줄어듭니다.
+      그만큼 <b>등급</b>은 품질의 공통 언어로, <b>이력번호</b>는 신뢰의 근거로 더욱 중요해집니다.
+      유통 현장의 모든 종사자가 두 제도를 정확히 이해하고 지키는 것이 소비자 신뢰와 축산업 경쟁력의 출발점입니다.
+    </div>
+
+    <div class="edu-src" style="margin-bottom:8px;">
+      본 교육자료는 「제3장 축산물 유통」을 소상공인 축산물판매업자 눈높이에 맞춰 요약한 것입니다.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ CHECKLIST ══════════ -->
+<div class="screen" id="sc-checklist">
+  <div class="content-wrap">
+    <div class="page-head">
+      <span class="back" onclick="goto('sc-home')">←</span>
+      <h2>자체위생관리 점검</h2>
+    </div>
+
+    <div class="insp-head">
+      <div class="row">
+        <span class="insp-date" id="insp-date">-</span>
+        <span class="insp-badge">매일 점검</span>
+      </div>
+      <div class="insp-name">
+        <label for="store-name-input">매장명</label>
+        <input type="text" id="store-name-input" placeholder="매장명을 입력하세요" oninput="saveStoreName()">
+      </div>
+    </div>
+
+    <div class="warn-note">
+      <b>⚠️ 점검을 마치면 반드시 [오늘 점검표 저장]을 눌러 이미지로 보관하세요.</b>
+      화면의 점검 내역은 날짜가 바뀌면 초기화되며, 저장한 이미지가 곧 점검일지 원본이 됩니다.
+      점검일지는 <b>최종 기재일부터 3개월간</b> 보관해야 합니다.
+    </div>
+
+    <div class="insp-legend">
+      <b>평가 및 표기기준</b> · 양호(○) / 보통(△) 청결관리 및 지도 / 불량(×) 즉시 시정 및 개선<br>
+      영업자는 <b>매일</b> 자체위생관리기준의 준수 여부를 점검하여 점검일지에 기록하여야 합니다.<br>
+      출처 : 축산물품질평가원 「축산물 이력제 거래내역 기록 서식집(2025)」 자체위생관리 기준 점검표
+    </div>
+
+    <div id="check-list"></div>
+
+    <div class="action-box" id="action-box">
+      <h4>지적항목에 대한 개선조치 사항</h4>
+      <div class="sub">보통(△) 또는 불량(×)으로 평가한 항목이 있습니다. 조치한 내용을 선택하세요. (최대 5개)</div>
+      <div id="action-list"></div>
+    </div>
+
+    <div class="summary-bar" id="summary-bar"></div>
+
+    <div class="success-banner" id="cl-success-banner">
+      ✨ 오늘의 점검을 모두 마쳤습니다!<br>
+      <span style="font-weight:600; font-size:13px; opacity:0.85;">아래 [오늘 점검표 저장]으로 이미지를 보관하세요.</span>
+    </div>
+
+    <div class="btn-wrap" style="display:flex; gap:10px; margin-top:14px;">
+      <button class="btn btn-sub" onclick="resetChecks()">초기화</button>
+      <button class="btn btn-main" onclick="downloadDaily()">📥 오늘 점검표 저장</button>
+    </div>
+
+    <div class="saved-note" id="saved-note"></div>
+  </div>
+</div>
+
+<!-- ══════════ NAV ══════════ -->
+<nav>
+  <button class="nav-btn active" id="nv-home" onclick="goto('sc-home')"><span class="nav-icon">🏠</span><span>홈</span></button>
+  <button class="nav-btn" id="nv-manual" onclick="goto('sc-manual')"><span class="nav-icon">📘</span><span>매뉴얼</span></button>
+  <button class="nav-btn" id="nv-faq" onclick="goto('sc-faq')"><span class="nav-icon">❓</span><span>질문</span></button>
+  <button class="nav-btn" id="nv-checklist" onclick="goto('sc-checklist')"><span class="nav-icon">✅</span><span>점검</span></button>
+  <button class="nav-btn" id="nv-edu" onclick="goto('sc-edu')"><span class="nav-icon">📚</span><span>교육</span></button>
+</nav>
+
+<script>
+/* ──────────────────────────────────────────────────
+   1. 유통단계 매뉴얼 (포장처리단계 · 판매단계)
+   출처 : 축산물품질평가원 「축산물이력제 업무편람(2025)」
+          소 편 Ⅲ-2·3·4·5 / 돼지 편 Ⅲ-4·5·6 / 닭·오리·계란 편 Ⅲ-8·9, Ⅳ-4
+          서식은 국가법령정보센터 원문 링크로 대체
+────────────────────────────────────────────────── */
+const LAW_NAME = {
+  act:     '가축및축산물이력관리에관한법률',
+  dec:     '가축및축산물이력관리에관한법률시행령',
+  rule:    '가축및축산물이력관리에관한법률시행규칙',
+  hyg:     '축산물위생관리법',
+  hygRule: '축산물위생관리법시행규칙'
+};
+const LAW_TITLE = {
+  act: '축산물이력법', dec: '축산물이력법 시행령', rule: '축산물이력법 시행규칙',
+  hyg: '축산물 위생관리법', hygRule: '축산물 위생관리법 시행규칙'
+};
+function lawUrl(law, jo) {
+  return 'https://www.law.go.kr/' + encodeURI('법령/' + LAW_NAME[law] + (jo ? '/' + jo : ''));
+}
+
+/* 서식(양식) → 법령 원문 링크 (법령 화면의 [별표·서식]에서 내려받기) */
+const FORM = {
+  f10:   { law: 'rule',    name: '별지 제10호서식', desc: '국내산이력축산물의 거래 신고서(소·돼지·닭·오리)' },
+  f10_2: { law: 'rule',    name: '별지 제10호의2서식', desc: '국내산이력축산물의 거래 신고서(계란)' },
+  f11:   { law: 'rule',    name: '별지 제11호서식', desc: '이력관리대상축산물 포장처리 신고서' },
+  f21:   { law: 'rule',    name: '별지 제21호서식', desc: '묶음번호 구성내역서' },
+  f22:   { law: 'rule',    name: '별지 제22호서식', desc: '이력관리대상축산물 판매·출고 실적' },
+  f38:   { law: 'hygRule', name: '별지 제38호서식', desc: '거래내역서' },
+  t13:   { law: 'rule',    name: '별표 13', desc: '이력번호의 표시 및 관리 방법' },
+  t14:   { law: 'rule',    name: '별표 14', desc: '묶음번호의 표시 및 관리 방법' },
+  t15:   { law: 'rule',    name: '별표 15', desc: '이력번호 게시 또는 표시 방법 (음식점·급식소·통신판매업)' }
+};
+
+const MAN_STAGES = [
+  { key: 'all',  label: '전체' },
+  { key: 'pack', label: '📦 포장처리단계' },
+  { key: 'sale', label: '🏪 판매단계' }
+];
+const MAN_INTRO = {
+  all:  '<b>포장처리단계</b>는 도체·부분육을 가공·포장하는 식육포장처리업자, <b>판매단계</b>는 소비자·업체에 판매하는 식육판매업자·식육즉석판매가공업자·식용란수집판매업자의 업무입니다.',
+  pack: '<b>📦 포장처리단계</b> · 식육포장처리업자가 도체·부분육을 입고해 발골·정형·포장한 뒤 출고하기까지 지켜야 할 신고·표시·기록 업무입니다.',
+  sale: '<b>🏪 판매단계</b> · 식육판매업자, 식육즉석판매가공업자, 식용란수집판매업자가 입고부터 소비자 판매까지 지켜야 할 표시·신고·기록 업무입니다.'
+};
+const MAN_HOT = ['이력번호 표시', '묶음번호', '5일', '전산신고', '장부', '거래명세서', '라벨', '닭·오리', '계란'];
+
+const MANUAL_DATA = [
+  /* ═════════ 포장처리단계 ═════════ */
+  {
+    stage: 'pack', no: 'P1', cat: '업무흐름',
+    title: '포장처리단계 업무 흐름 한눈에 보기',
+    keys: ['업무흐름', '입고', '발골', '정형', '라벨', '출고', 'BOX'],
+    body: `
+      <div class="steps">
+        <div class="step"><div class="n">1</div><div class="c"><b>입고</b>입고된 도체와 거래명세서상의 이력번호가 일치하는지 확인</div></div>
+        <div class="step"><div class="n">2</div><div class="c"><b>발골·정형</b>도체의 이력번호를 확인한 뒤 개체가 섞이지 않도록 부위별로 발골·정형</div></div>
+        <div class="step"><div class="n">3</div><div class="c"><b>부위별 포장</b>부위별로 포장한 부분육에 이력번호 라벨을 부착 — 최소 포장단위마다 해당 이력번호 표시</div></div>
+        <div class="step"><div class="n">4</div><div class="c"><b>BOX 포장</b>안에 든 부분육의 이력번호와 일치하는 라벨을 겉포장지에 부착</div></div>
+        <div class="step"><div class="n">5</div><div class="c"><b>출고</b>거래명세서와 이력번호의 일치 여부를 확인한 뒤 판매장으로 출고</div></div>
+      </div>`,
+    laws: [{ law: 'rule', form: 't13' }]
+  },
+  {
+    stage: 'pack', no: 'P2', cat: '전산신고',
+    title: '전산신고를 해야 하는 식육포장처리업자',
+    keys: ['전산신고', '신고대상', '의무자', '5명', '종업원', '연접', '도축장'],
+    body: `
+      <p>국내산 쇠고기·돼지고기·닭고기·오리고기를 취급하는 식육포장처리업자 중 아래에 해당하면 이력관리시스템으로 전산신고해야 합니다.</p>
+      <ul>
+        <li>도축업 영업장 시설과 <b>일체를 이루거나 연접(連接)한 시설</b>에서 영업하는 자</li>
+        <li>영업장의 <b>전년도 연간 평균 종업원이 5명 이상</b>인 자</li>
+        <li>위에 해당하지 않지만 신고 의무자가 되기를 원해 농림축산식품부장관에게 신청한 자</li>
+      </ul>
+      <div class="box">
+        <h5>종업원 수 산정</h5>
+        전년도(1월 1일~12월 31일) 평균으로 산정합니다. 휴업 등으로 연간 기준을 산정할 수 없으면 분기별·월별로,
+        신규 허가는 허가권자가 시설 규모·사업계획 물량 등을 고려한 연간 예상 평균으로 산정합니다.
+      </div>
+      <p>전산신고 대상이 아닌 업소도 포장처리·판매 실적을 <b>자체 장부에 날짜별로 기록</b>해야 합니다.</p>`,
+    laws: [{ law: 'act', jo: '제17조', t: '식육포장처리업자 등의 포장처리 및 거래 신고 등' }, { law: 'dec', jo: '제4조', t: '포장처리 및 거래 신고 의무자' }]
+  },
+  {
+    stage: 'pack', no: 'P3', cat: '신고기한',
+    title: '신고 기한과 판매·반출·매입·반입의 뜻',
+    keys: ['신고기한', '5일', '판매', '반출', '매입', '반입', '용어'],
+    body: `
+      <p>포장처리 또는 거래(매입·반입·판매·반출)한 날부터 <b>5일 이내</b>에 신고합니다. (토요일·공휴일 제외)</p>
+      <table>
+        <tr><th style="width:22%">용어</th><th>뜻</th></tr>
+        <tr><td class="hd">판매</td><td>포장처리업소에서 다른 식육판매업소 등에 파는 것 (매출)</td></tr>
+        <tr><td class="hd">반출</td><td>지육·부분육을 매출 없이 다른 포장처리업소·식육판매업소 등으로 옮기는 것</td></tr>
+        <tr><td class="hd">매입</td><td>포장처리를 위해 도축장·다른 포장처리업소에서 지육·부분육을 사들이는 것</td></tr>
+        <tr><td class="hd">반입</td><td>다른 포장처리업소에 가공을 맡긴 뒤 가공된 지육·부분육이 다시 들어오는 것 (매출 없음)</td></tr>
+      </table>
+      <div class="box">
+        <h5>닭·오리고기는 출고 당일 신고 권장</h5>
+        포장처리업자의 출고신고는 거래처의 입고신고와 시스템에서 연계됩니다. 거래처가 빠르고 정확하게 입고신고할 수 있도록 가능하면 출고한 당일에 신고하세요.
+      </div>`,
+    laws: [{ law: 'act', jo: '제17조', t: '식육포장처리업자 등의 포장처리 및 거래 신고 등' }, { law: 'rule', jo: '제18조', t: '포장처리 및 거래신고의 방법·절차 등' }]
+  },
+  {
+    stage: 'pack', no: 'P4', cat: '신고내용',
+    title: '무엇을 신고하고 기록해야 하나',
+    keys: ['신고내용', '포장처리 실적', '거래신고서', '판매반출 실적', '서식', '장부', '2년'],
+    body: `
+      <table>
+        <tr><th style="width:26%">구분</th><th>포장처리할 때</th><th>거래할 때</th></tr>
+        <tr><td class="hd">전산신고<br>대상</td><td>포장처리 신고서<br>→ 이력관리시스템 신고</td><td>거래 신고서<br>→ 이력관리시스템 신고</td></tr>
+        <tr><td class="hd">전산신고<br>비대상</td><td>포장처리 신고서<br>→ 자체 장부 기록</td><td>판매·반출 실적<br>→ 자체 장부 기록</td></tr>
+      </table>
+      <ul>
+        <li><b>포장처리 신고 항목</b> : 업체명·전화번호·주소, 포장처리일, 이력(묶음)번호, 원료 또는 부위명, 무게, 매입·반입처, 의뢰업체명</li>
+        <li><b>거래 신고 항목</b> : 신고인, 출고(입고)처, 거래처, 거래내역(거래일·도축일·가공일·이력번호·부위명·수량·무게)</li>
+        <li>포장처리 없이 <b>매입·반출만</b> 하는 경우에도 매입내역은 거래 신고서 양식으로 기록합니다.</li>
+        <li>비대상 업소도 원하면 이력관리시스템으로 기록·관리할 수 있습니다.</li>
+      </ul>
+      <div class="box warn">
+        <h5>합산 신고 주의</h5>
+        포장처리실적은 포장처리일·이력번호·부위·매입처별로 구분해야 합니다. 소 한 마리를 통째로 합산해 신고하면 안 되며,
+        포장처리일·이력번호·매입처·부위가 모두 같은 경우에만 중량을 합칠 수 있습니다.
+      </div>
+      <p>장부는 전자적 처리방식을 포함해 <b>기록일부터 2년간</b> 보관합니다. 닭·오리는 위생관리법 시행규칙 별표 12의 원료수불·생산작업·거래내역 서류로 갈음할 수 있습니다(서식 기재사항을 모두 적은 경우).</p>`,
+    laws: [{ law: 'rule', form: 'f11' }, { law: 'rule', form: 'f10' }, { law: 'rule', form: 'f22' }, { law: 'act', jo: '제26조', t: '장부의 비치 등' }]
+  },
+  {
+    stage: 'pack', no: 'P5', cat: '포장방법',
+    title: '이력번호가 섞이지 않게 포장처리하는 방법',
+    keys: ['포장방법', '혼입', '재포장', '등외등급', '12자리', '라벨', '이력번호 표시'],
+    body: `
+      <ul>
+        <li>가공할 때 <b>이력번호가 다른 개체와 섞이지 않도록</b> 포장처리합니다.</li>
+        <li><b>재포장</b>할 때도 입고된 이력번호가 섞이지 않도록 구분해서 작업합니다.</li>
+        <li>소비자에게 판매하는 포장육은 <b>최소 단위 용기·포장마다</b> 같은 이력번호를 표시합니다.</li>
+        <li>이력번호는 국가코드(KOR)를 뺀 <b>12자리</b>로 표시합니다.</li>
+        <li>번호가 오염·훼손되면 다시 표시하고, 거래 후 남은 축산물도 번호를 표시해 보관합니다.</li>
+      </ul>
+      <table>
+        <tr><th style="width:22%">축종</th><th>추가로 지킬 점</th></tr>
+        <tr><td class="hd">돼지</td><td>농장 간 혼입이 없도록 이력번호 단위로 구분·가공. 일반등급(1<sup>+</sup>·1·2)과 <b>등외등급은 별도</b>로 포장(등외는 묶음번호로 따로 구성)</td></tr>
+        <tr><td class="hd">닭·오리</td><td>이력번호 또는 묶음번호 단위로 구분해 공정관리. 재포장 시 업소별로 입고된 원료육 번호가 섞이지 않게 구분</td></tr>
+      </table>`,
+    laws: [{ law: 'act', jo: '제18조', t: '판매표지판 등의 이력번호 표시 등' }, { law: 'rule', form: 't13' }]
+  },
+  {
+    stage: 'pack', no: 'P6', cat: '가공의뢰',
+    title: '다른 포장처리업소에 가공을 맡길 때',
+    keys: ['가공의뢰', '의뢰업체', '입고신고', '출고신고', '반입'],
+    body: `
+      <p>포장처리 신고서의 <b>의뢰업체명</b>란에 의뢰한 쪽 업체의 상호·사업자(법인)번호·전화번호를 적습니다. 의뢰한 업체와 의뢰받은 업체가 <b>모두 전산신고 업체</b>라면 아래 순서로 신고합니다.</p>
+      <table>
+        <tr><th>가공을 맡긴 업체</th><th>가공을 맡은 업체</th></tr>
+        <tr><td>① 입고신고<br>② 출고신고<br>③ 입고신고 <span style="color:var(--ai-muted)">(생략 가능)</span><br>④ 출고신고</td>
+            <td>① 입고신고 <span style="color:var(--ai-muted)">(생략 가능)</span><br>② 포장처리실적 신고 (의뢰업체명 기재)<br>③ 출고신고 <span style="color:var(--ai-muted)">(생략 가능)</span></td></tr>
+      </table>
+      <p style="font-size:12.5px; color:var(--ai-muted)">다른 업소가 이미 포장처리실적을 올린 원료육을 재가공해 신고해도, 1차 업소의 실적은 그대로 남고 우리 업소의 실적이 추가로 함께 조회됩니다.</p>`,
+    laws: [{ law: 'rule', form: 'f11' }]
+  },
+  {
+    stage: 'pack', no: 'P7', cat: '묶음번호',
+    title: '묶음번호 구성 규칙 (축종별 한도)',
+    keys: ['묶음번호', '15자리', '구성내역서', '재묶음', '20마리', '30개', '10개'],
+    body: `
+      <p>이력번호가 다른 여러 축산물을 하나로 포장할 때는 <b>이력번호를 모두 표시</b>하거나, 구성내역서를 기록한 뒤 <b>묶음번호</b>를 쓸 수 있습니다.</p>
+      <table>
+        <tr><th style="width:17%">축종</th><th style="width:28%">구성 한도</th><th>조건</th></tr>
+        <tr><td class="hd">소</td><td class="c">20마리 이하<br><span style="font-size:11px">(갈비·세절·분쇄육 50마리)</span></td><td>소의 종류가 같을 때만. 등급표시 의무부위(안심·등심·채끝·양지·갈비·설도·앞다리)는 같은 등급끼리만. 재묶음 금지</td></tr>
+        <tr><td class="hd">돼지</td><td class="c">30개 이하<br><span style="font-size:11px">(재묶음 포함)</span></td><td>성별·등급별 구성 권장, 등외등급 별도. 구성내역을 전산신고한 경우 <b>1회 재묶음 가능</b></td></tr>
+        <tr><td class="hd">닭·오리</td><td class="c">10개 이하</td><td>도축일자가 같을 때만(부분육 생산은 전일 도축분 포함 가능). 재묶음 금지. 영업자코드를 받은 전산신고 의무 포장처리업자만 사용</td></tr>
+      </table>
+      <div class="box">
+        <h5>묶음번호 15자리 구성</h5>
+        <b>L</b>(1) + 축종코드(1 · 소 0, 돼지 1, 닭 2, 오리 5) + 묶음날짜(6 · 연월일) + 영업자코드(4) + 일련번호(3)<br>
+        예) L 0 250628 1234 001<br>
+        영업자코드 : 전산신고 대상은 이력관리시스템에서 부여받은 고유번호, 비대상은 사업자등록번호 10자리 중 마지막 한 자리를 뺀 끝 4자리(예: 100-01-1234<b>5</b> → 1234)
+      </div>
+      <ul>
+        <li>구성내역서는 전산신고 업소는 <b>이력관리시스템에 신고</b>(소비자가 인터넷으로 조회 가능하도록), 비대상 업소는 작성해 보관합니다.</li>
+        <li>구매자 등이 요청하면 구성내역서를 <b>지체 없이 제공</b>해야 합니다.</li>
+        <li>묶음으로 포장한 경우에도 소포장지마다 번호를 표시합니다.</li>
+      </ul>`,
+    laws: [{ law: 'rule', form: 't14' }, { law: 'rule', form: 'f21' }]
+  },
+  {
+    stage: 'pack', no: 'P8', cat: '시스템',
+    title: '이력관리시스템 이용 신청과 취소',
+    keys: ['이용신청', '회원가입', '아이디', '이용취소', '신청서', '3일'],
+    body: `
+      <ul>
+        <li><b>신청</b> : 이력관리시스템 이용 신청서를 축산물품질평가원장에게 제출합니다. 축산물이력제 홈페이지·모바일앱의 <b>[유통업소 이용신청]</b>에서 전자 신청할 수 있고, 처리기간은 3일입니다.</li>
+        <li>축산물품질평가원장은 사업장의 전산처리 능력·규모 등을 고려해 승인 여부를 통보합니다.</li>
+        <li><b>취소</b> : 종업원 수 감소 등으로 전산신고 의무 조건을 잃은 경우 이용 취소 신청서를 제출합니다.</li>
+      </ul>
+      <div class="box">
+        <h5>첨부서류</h5>
+        사업자등록증, 영업 허가증(식육포장처리업 등) 또는 신고필증(식육판매업 등)<br>
+        문의 : 이력지원실 1577-2633 · 팩스 044-410-7178
+      </div>`,
+    laws: [{ law: 'dec', jo: '제4조', t: '포장처리 및 거래 신고 의무자' }]
+  },
+  {
+    stage: 'pack', no: 'P9', cat: '교부·협조',
+    title: '거래명세서 교부와 DNA 시료채취 협조',
+    keys: ['거래명세서', '영수증', '등급판정확인서', 'DNA', '시료채취'],
+    body: `
+      <ul>
+        <li>구매자가 요청하면 해당 이력(묶음)번호를 적은 <b>영수증 또는 거래명세서</b>, 또는 축산물등급판정확인서 사본을 교부합니다.</li>
+        <li>개체 동일성 확인을 위한 관계기관(시·도, 국립농산물품질관리원, 축산물품질평가원)의 <b>DNA 시료채취에 협조</b>해야 합니다.</li>
+      </ul>`,
+    laws: [{ law: 'act', jo: '제18조', t: '판매표지판 등의 이력번호 표시 등 (제3항 거래명세서 발급)' }, { law: 'rule', jo: '제20조', t: '거래명세서 등 발급 대상자 등' }]
+  },
+
+  /* ═════════ 판매단계 ═════════ */
+  {
+    stage: 'sale', no: 'S1', cat: '업무흐름',
+    title: '판매단계 업무 흐름 한눈에 보기',
+    keys: ['업무흐름', '입고', '소분할', '게시', '라벨', '조회'],
+    body: `
+      <div class="steps">
+        <div class="step"><div class="n">1</div><div class="c"><b>판매장 입고</b>입고된 부분육과 거래명세서상의 이력번호 일치 여부를 확인하고, 거래내역서에 이력번호 등을 기록</div></div>
+        <div class="step"><div class="n">2</div><div class="c"><b>부분육 소분할</b>이력번호 확인 후 단위별로 소분할하고, 포장지에 원래 고기와 같은 이력번호를 표시</div></div>
+        <div class="step"><div class="n">3</div><div class="c"><b>이력번호 게시 후 판매</b>고기 또는 진열대 식육판매표지판에 이력번호를 게시. 소포장 판매 시 포장지마다 번호 라벨 부착</div></div>
+        <div class="step"><div class="n">4</div><div class="c"><b>이력정보 조회</b>축산물이력제 홈페이지·스마트폰 앱으로 이력번호 조회</div></div>
+      </div>
+      <div class="box">이력번호를 라벨 등에 인쇄해 포장 표면에 붙여 판매하는 경우에는 <b>식육판매표지판 표시를 생략</b>할 수 있습니다.</div>`,
+    laws: [{ law: 'rule', form: 't13' }]
+  },
+  {
+    stage: 'sale', no: 'S2', cat: '이력번호 표시',
+    title: '판매할 때 이력번호 표시 방법',
+    keys: ['이력번호 표시', '식육판매표지판', '표지판', '스티커', '라벨', '12자리', '보관', '훼손'],
+    body: `
+      <p><b>표시 대상</b> : 이력관리대상축산물을 판매하는 모든 업소</p>
+      <ul>
+        <li>매입한 고기·포장육에 표시된 이력번호를 확인한 뒤, 고기나 <b>식육판매표지판</b> 등에 <b>같은 이력번호</b>를 표시합니다.</li>
+        <li>스티커·라벨에 인쇄해 포장 표면에 붙여 팔면 표지판 표시를 생략할 수 있습니다. 비닐에 직접 인쇄해도 됩니다.</li>
+        <li>이력번호는 국가코드(KOR)를 뺀 <b>12자리</b>로 표시합니다.</li>
+        <li>번호가 훼손되지 않게 관리하고, 훼손되면 <b>다시 표시</b>합니다.</li>
+        <li>거래·판매 후 <b>남은 고기를 보관할 때도</b> 이력번호를 표시해 둡니다.</li>
+      </ul>
+      <div class="box warn">
+        <h5>위반 시 과태료</h5>
+        이력번호를 표시·게시하지 않거나 거짓으로 한 경우 1회 70만원 · 2회 140만원 · 3회 280만원 · 4회 이상 500만원
+      </div>`,
+    laws: [{ law: 'act', jo: '제18조', t: '판매표지판 등의 이력번호 표시 등' }, { law: 'rule', form: 't13' }]
+  },
+  {
+    stage: 'sale', no: 'S3', cat: '닭·오리·계란',
+    title: '닭·오리고기와 계란을 판매할 때',
+    keys: ['닭·오리', '닭', '오리', '계란', '포장 그대로', '전통시장', '절단', '난각'],
+    body: `
+      <div class="box">
+        <h5>🐔 닭·오리고기</h5>
+        <ul style="margin:0">
+          <li>포장된 상태 <b>그대로 판매</b>해야 하며, 포장을 뜯어 진열·판매하면 안 됩니다.</li>
+          <li>소비자가 구매를 결정한 뒤 절단을 요청하면, 위생적으로 절단해 적합한 비닐 등에 담아줄 수 있습니다.</li>
+          <li>최소포장지에 같은 이력(묶음)번호를 표시합니다.</li>
+          <li><b>전통시장</b>에서는 포장하지 않고 팔 수 있지만, 이때는 식육판매표지판이나 라벨에 이력(묶음)번호를 표시해야 합니다.</li>
+        </ul>
+      </div>
+      <p style="font-size:12.5px">닭·오리 이력번호 12자리 = 축종코드(닭 2, 오리 5) + 도축연월일(6) + 도축장코드(3) + 일련번호(2)</p>
+      <div class="box">
+        <h5>🥚 계란</h5>
+        <ul style="margin:0">
+          <li>계란 껍데기(난각)에 이력번호가 표시된 제품인지 <b>확인한 후 판매</b>합니다.</li>
+          <li>구매자가 요청하면 이력번호를 영수증·거래명세서에 적어 교부합니다.</li>
+          <li>HACCP(재포장) 인증 식용란수집판매업자는 소매단위로 재포장할 때 이력번호가 섞이지 않게 구분하고, 거래실적을 전산신고합니다.</li>
+        </ul>
+      </div>`,
+    laws: [{ law: 'rule', form: 't13' }, { law: 'rule', form: 'f10_2' }]
+  },
+  {
+    stage: 'sale', no: 'S4', cat: '묶음번호',
+    title: '판매업소에서 묶음번호를 쓸 때',
+    keys: ['묶음번호', '구성내역서', '혼합', '영업자코드', '즉시 제공'],
+    body: `
+      <ul>
+        <li>이력번호가 다른 여러 개를 한 개로 포장하면 번호를 <b>모두 표시</b>하거나 <b>묶음번호</b>를 표시할 수 있습니다.</li>
+        <li>묶음번호를 쓰면 구성 이력번호를 기록·관리하고, 구매자 등이 요청하면 <b>즉시 알려줘야</b> 합니다.</li>
+        <li>하나의 식육판매표지판에는 하나의 묶음번호만 표시합니다.</li>
+        <li>전산신고 업소는 구성내역서를 이력관리시스템에 신고하고, 비대상 업소는 작성해 보관합니다.</li>
+        <li>비대상 업소의 영업자코드는 사업자등록번호 10자리 중 마지막 한 자리를 뺀 끝 4자리입니다.</li>
+      </ul>
+      <p style="font-size:12.5px; color:var(--ai-muted)">축종별 구성 한도(소 20마리·돼지 30개 등)와 15자리 구성체계는 포장처리단계 <b>P7</b>과 같습니다.</p>`,
+    laws: [{ law: 'rule', form: 't14' }, { law: 'rule', form: 'f21' }]
+  },
+  {
+    stage: 'sale', no: 'S5', cat: '전산신고',
+    title: '전산신고 대상 판매업소와 신고 기한',
+    keys: ['전산신고', '신고대상', '5인', '50제곱미터', '300제곱미터', '기타식품판매업', '5일', '신고기한'],
+    body: `
+      <p><b>기타식품판매업</b>(영업장 300㎡ 이상 백화점·슈퍼마켓·연쇄점 등)으로 신고한 영업장에서 영업하는 식육판매업자·식육즉석판매가공업자 중
+      <b>종업원 5인 이상 또는 영업장 50㎡ 이상</b>인 자, 그리고 신고를 희망해 신청한 자가 대상입니다.</p>
+      <ul>
+        <li><b>신고 내용</b> : 신고인, 출·입고처, 거래처, 거래내역(거래일·이력(묶음)번호·부위명·수량·무게·도체번호 등)</li>
+        <li><b>신고 기한</b> : 거래한 날부터 <b>5일 이내</b> (토요일·공휴일 제외)</li>
+        <li>납품처가 전산으로 출고신고하면 우리 매장 입고내역에 연계되어 <b>일괄 입고신고</b>할 수 있습니다.</li>
+        <li>일반 소비자에게 판매한 건은 신고 대상이 아닙니다(사업자 간 거래만).</li>
+      </ul>
+      <div class="box warn">
+        <h5>위반 시 과태료</h5>
+        거래·판매 신고를 하지 않은 경우 1회 70만원 · 2회 140만원 · 3회 280만원 · 4회 이상 500만원
+      </div>`,
+    laws: [{ law: 'act', jo: '제17조', t: '식육포장처리업자 등의 포장처리 및 거래 신고 등' }, { law: 'dec', jo: '제4조', t: '포장처리 및 거래 신고 의무자' }, { law: 'rule', form: 'f10' }]
+  },
+  {
+    stage: 'sale', no: 'S6', cat: '장부기록',
+    title: '거래내역서(장부) 기록과 보관 기간',
+    keys: ['장부', '거래내역서', '보관기간', '1년', '2년', '비전산', '기록'],
+    body: `
+      <table>
+        <tr><th style="width:24%">구분</th><th>매입할 때</th><th>사업자에게 판매·반출할 때</th></tr>
+        <tr><td class="hd">전산신고<br>대상</td><td>이력관리시스템으로 날짜별 기록<br><span style="font-size:11px;color:var(--ai-muted)">(전산 입력이 거래내역서를 갈음)</span></td><td>이력관리시스템으로 판매·반출 실적 기록</td></tr>
+        <tr><td class="hd">전산신고<br>비대상</td><td>위생관리법 <b>거래내역서</b>에 이력번호를 적어 날짜별 기록</td><td><b>판매·출고 실적</b>을 거래일별로 기록<br><span style="font-size:11px;color:var(--ai-muted)">(위생법 별표 13 거래내역서로 갈음 가능)</span></td></tr>
+      </table>
+      <p>보관 기간은 <b>매입 기록 1년, 매출 기록 2년</b>입니다.</p>
+      <div class="box warn">
+        <h5>위반 시 과태료</h5>
+        장부·거래내역서를 기록하지 않거나 거짓 기록, 보관기한을 지키지 않은 경우 1회 50만원 · 2회 100만원 · 3회 200만원 · 4회 이상 400만원
+      </div>`,
+    laws: [{ law: 'hygRule', form: 'f38' }, { law: 'rule', form: 'f22' }, { law: 'act', jo: '제26조', t: '장부의 비치 등' }, { law: 'hyg', jo: '제31조', t: '영업자 등의 준수사항 (거래내역서 작성)' }]
+  },
+  {
+    stage: 'sale', no: 'S7', cat: '교부·협조',
+    title: '영수증·거래명세서 교부와 DNA 시료채취 협조',
+    keys: ['거래명세서', '영수증', '교부', '등급판정확인서', 'DNA', '시료채취'],
+    body: `
+      <p>식육포장처리업자·식육판매업자·식육즉석판매가공업자·식품접객업자·집단급식소운영자·통신판매업자 등, 그리고 <b>이력번호를 요구하는 구매자</b>에게 판매하는 경우
+      영수증 또는 거래명세서에 <b>이력번호를 적어 발급</b>하거나 축산물등급판정확인서 사본을 교부합니다.</p>
+      <ul>
+        <li>일반 소비자는 표지판의 번호를 보고 사므로 비닐봉투에 따로 표시하지 않아도 되지만, 요구하면 영수증에 적어 줘야 합니다.</li>
+        <li>관계기관의 <b>DNA 동일성검사 시료채취에 협조</b>해야 합니다.</li>
+      </ul>
+      <div class="box warn">
+        <h5>위반 시 과태료</h5>
+        이력번호를 적은 거래명세서 등을 발급하지 않은 경우 1회 70만원 · 2회 140만원 · 3회 280만원 · 4회 이상 500만원
+      </div>`,
+    laws: [{ law: 'act', jo: '제18조', t: '판매표지판 등의 이력번호 표시 등 (제3항 거래명세서 발급)' }, { law: 'rule', jo: '제20조', t: '거래명세서 등 발급 대상자 등' }]
+  },
+  {
+    stage: 'sale', no: 'S8', cat: '정보공개',
+    title: '소비자에게 공개되는 이력정보',
+    keys: ['이력정보', '공개', '조회', '등급', '묶음번호 조회', '3년'],
+    body: `
+      <p>소비자는 휴대전화 등으로 이력번호를 조회해 다음 정보를 확인할 수 있습니다.</p>
+      <ul>
+        <li>농장식별번호, 이력번호, 가축의 종류, 사육지 소재지, 농장경영자</li>
+        <li>도축장 명칭·소재지, 도축연월일과 도축검사 결과, 등급판정 결과</li>
+        <li>식육포장처리업체 명칭·소재지 (계란은 산란일자, 표시의무자·수집판매업체 포함)</li>
+      </ul>
+      <p>정보는 가축이 등록된 날부터 도축·폐사·수출 후 <b>3년까지</b> 공개됩니다. <b>판매장 정보는 공개 대상이 아닙니다.</b></p>
+      <div class="box">
+        <h5>묶음번호의 등급 표시</h5>
+        묶음번호를 조회하면 구성내역서에 신고한 등급이 표시됩니다. 1<sup>+</sup>·1등급으로 묶으면 “1등급 이상”, 1<sup>+</sup>·1·2등급으로 묶으면 “2등급 이상”으로 공개됩니다.
+      </div>`,
+    laws: [{ law: 'act', jo: '제25조', t: '이력정보의 공개 등' }, { law: 'dec', jo: '제8조', t: '이력관리대상가축·국내산이력축산물 이력정보의 공개' }]
+  },
+  {
+    stage: 'sale', no: 'S9', cat: '음식점·통신판매',
+    title: '참고 · 음식점(700㎡ 이상)·급식소·통신판매업',
+    keys: ['음식점', '정육식당', '700제곱미터', '메뉴판', '학교급식', '통신판매', '7일'],
+    body: `
+      <table>
+        <tr><th style="width:24%">대상</th><th>표시 방법</th></tr>
+        <tr><td class="hd">일반·휴게<br>음식점<br><span style="font-size:10.5px;font-weight:600">(700㎡ 이상)</span></td>
+            <td>메뉴판·메뉴게시판, 거래명세서·영수증, 이력관리시스템 출력물, 별도 게시판·푯말, 홈페이지, 스티커·라벨 중 하나에 표시.
+            메뉴판·홈페이지 외 방법은 계산대·출입문 주변 등에 비치. <b>공급일부터 7일 이내</b> 게시하고 소진 시까지 유지</td></tr>
+        <tr><td class="hd">학교급식</td><td>급식일 기준 7일 이내 게시. 학교 홈페이지 등에서 조회 가능하면 게시를 갈음</td></tr>
+        <tr><td class="hd">통신판매</td><td>원산지 표시 주변에 “이력번호 표시제품임” 표시, 배송 상품에 번호 표시. 전화 판매는 말로 1회당 2번 이상 설명</td></tr>
+      </table>
+      <p style="font-size:12.5px; color:var(--ai-muted)">정육점과 식당을 함께 하는 <b>정육식당</b>은 식육판매업 신고가 있으면 판매업소 기준(S2·S6)을 따릅니다.</p>`,
+    laws: [{ law: 'rule', form: 't15' }]
+  }
+];
+
+let manStage = 'all';
+let manOpen = {};
+
+function strip(html) {
+  return html.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ').replace(/\s+/g, ' ').trim();
+}
+MANUAL_DATA.forEach((m, i) => { m.idx = i; m.plain = strip(m.body); });
+
+function initManual() {
+  document.getElementById('stage-tabs').innerHTML = MAN_STAGES.map(s =>
+    `<button type="button" class="stage-tab ${s.key === manStage ? 'on' : ''}" onclick="setManStage('${s.key}')">${s.label}</button>`
+  ).join('');
+  document.getElementById('man-keys').innerHTML = MAN_HOT.map(k =>
+    `<div class="q-tag" onclick="manSearch('${k}')"># ${esc(k)}</div>`
+  ).join('');
+  const intro = document.getElementById('stage-intro');
+  intro.innerHTML = MAN_INTRO[manStage];
+  intro.className = 'stage-intro' + (manStage === 'sale' ? ' sale' : '');
+}
+
+function setManStage(k) {
+  manStage = k;
+  initManual();
+  filterManual();
+}
+
+function manSearch(k) {
+  document.getElementById('man-input').value = k;
+  filterManual();
+  window.scrollTo({ top: document.getElementById('man-count').offsetTop - 80, behavior: 'smooth' });
+}
+
+function snippet(text, q) {
+  const i = text.toLowerCase().indexOf(q);
+  if (i < 0) return '';
+  const s = Math.max(0, i - 22), e = Math.min(text.length, i + q.length + 38);
+  return (s > 0 ? '…' : '') + text.slice(s, e) + (e < text.length ? '…' : '');
+}
+
+function lawLinkHtml(l) {
+  if (l.form) {
+    const f = FORM[l.form];
+    return `<a class="law-link" href="${lawUrl(f.law)}" target="_blank" rel="noopener">
+      <span class="ic">📄</span>
+      <span class="t">${esc(LAW_TITLE[f.law])} ${esc(f.name)}<small>${esc(f.desc)}</small></span>
+      <span class="go">열기 ↗</span></a>`;
+  }
+  return `<a class="law-link" href="${lawUrl(l.law, l.jo)}" target="_blank" rel="noopener">
+    <span class="ic">⚖️</span>
+    <span class="t">${esc(LAW_TITLE[l.law])} ${esc(l.jo)}<small>${esc(l.t || '')}</small></span>
+    <span class="go">열기 ↗</span></a>`;
+}
+
+function filterManual() {
+  const q = document.getElementById('man-input').value.trim().toLowerCase();
+  let list = MANUAL_DATA;
+  if (manStage !== 'all') list = list.filter(m => m.stage === manStage);
+  if (q) {
+    list = list.filter(m =>
+      m.title.toLowerCase().includes(q) ||
+      m.cat.toLowerCase().includes(q) ||
+      m.plain.toLowerCase().includes(q) ||
+      m.keys.some(k => k.toLowerCase().includes(q))
+    );
+  }
+  renderManual(list, q);
+}
+
+function renderManual(list, q) {
+  const stageName = { all: '전체', pack: '포장처리단계', sale: '판매단계' }[manStage];
+  document.getElementById('man-count').innerHTML =
+    `${esc(stageName)} <b>${list.length}</b>건 ${q ? `(검색어: "${esc(q)}")` : ''}`;
+
+  const area = document.getElementById('man-list');
+  if (!list.length) {
+    area.innerHTML = `<p class="empty-msg">검색 결과가 없습니다.<br>다른 키워드로 검색하거나 단계를 '전체'로 바꿔보세요.</p>`;
+    return;
+  }
+
+  area.innerHTML = list.map(m => {
+    const snip = q && !m.title.toLowerCase().includes(q) ? snippet(m.plain, q) : '';
+    const hasForm = m.laws.some(l => l.form);
+    return `
+    <div class="man-item ${manOpen[m.idx] ? 'open' : ''}" id="man-${m.idx}">
+      <div class="man-q" onclick="toggleManual(${m.idx})">
+        <div class="man-no ${m.stage}">${m.no}</div>
+        <div class="txt">
+          <h4>${highlight(m.title, q)}</h4>
+          ${snip ? `<div class="man-snip">${highlight(snip, q)}</div>` : ''}
+          <div class="man-tags">
+            <span class="man-tag">${m.stage === 'pack' ? '포장처리' : '판매'}</span>
+            <span class="man-tag">${esc(m.cat)}</span>
+          </div>
+        </div>
+        <span class="faq-arrow">❯</span>
+      </div>
+      <div class="man-a">
+        <div class="man-body">${m.body}</div>
+        <div class="law-links">
+          <div class="h">⚖️ 법령 바로가기</div>
+          <div class="list">${m.laws.map(lawLinkHtml).join('')}</div>
+          ${hasForm ? `<div class="form-note">※ 서식·별표는 법령 화면 상단의 <b>[별표·서식]</b>에서 한글(hwp)·PDF로 내려받을 수 있습니다.</div>` : ''}
+        </div>
+        <div class="man-keys">${m.keys.map(k => `<span onclick="manSearch('${k}')"># ${esc(k)}</span>`).join('')}</div>
+        <div class="man-src">출처 : 축산물품질평가원 「축산물이력제 업무편람(2025)」 유통단계 매뉴얼</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  triggerStagger('man-list');
+}
+
+function toggleManual(i) {
+  manOpen[i] = !manOpen[i];
+  const el = document.getElementById('man-' + i);
+  if (el) el.classList.toggle('open', !!manOpen[i]);
+}
+
+/* ──────────────────────────────────────────────────
+   2. 자주 묻는 질문 (판매단계)
+   출처 : 축산물품질평가원 「축산물이력제 업무편람(2025)」
+          - 소 / 돼지 / 닭·오리·계란 편 Ⅳ~Ⅵ 단계별 질의응답 중 '판매(수집판매)' 단계
+          - 축종별 중복 질문은 하나로 통합 정리
+────────────────────────────────────────────────── */
+const FAQ_SOURCE = '축산물품질평가원 「축산물이력제 업무편람(2025)」 판매단계 질의응답';
+
+const FAQ_DATA = [
+  /* ───── 대상·의무 ───── */
+  {
+    cat: '대상·의무',
+    q: '고기를 판매하고 있습니다. 축산물이력제에서 제가 해야 할 일은 무엇인가요?',
+    keys: ['의무사항','판매업자','해야할일','기본'],
+    a: `판매업소가 지켜야 할 일은 크게 세 가지입니다.
+
+① [입고] 포장육에 붙은 이력(묶음)번호와 거래명세표·축산물등급판정확인서·도축검사증명서에 적힌 번호가 일치하는지 확인한 뒤 받습니다.
+② [표시] 판매할 때 라벨지나 식육판매표지판 등에 같은 이력(묶음)번호를 정확하게 표시합니다. (닭·오리고기와 계란은 최소포장지·난각에 표시)
+③ [기록] 거래내역을 날짜별로 구분해 장부에 기록(전자적 처리방식 포함)하고, 매입·반입은 1년, 판매·반출은 2년간 보관·관리합니다.
+
+또한 구매자가 요구하면 해당 이력번호를 기재한 영수증 또는 거래명세서 사본을 교부해야 합니다.`,
+    ref: '이력관리법 시행규칙 제20조 및 별표 13'
+  },
+  {
+    cat: '대상·의무',
+    q: '전산신고를 꼭 해야 하는 식육판매업자는 어떻게 구분되나요?',
+    keys: ['전산신고','의무대상','5인','50제곱미터','300제곱미터','기준'],
+    a: `아래에 해당하면 전산신고(이력관리시스템 등록) 의무 대상입니다.
+
+① 「식품위생법 시행령」에 따른 300㎡ 이상의 기타식품판매업(백화점·슈퍼마켓·연쇄점 등)으로 신고한 영업장에서 영업하는 식육판매업자 또는 식육즉석판매가공업자 중, 종업원이 5명 이상이거나 영업장 면적이 50㎡ 이상인 자
+② 신고 의무자가 되기를 희망해 신청한 자 (식육판매업자, 식육부산물전문판매업자, 축산물유통전문판매업자, 식육즉석판매가공업자)
+
+→ 여기에 해당하지 않는 소규모 판매업소는 전산신고 없이 거래내역을 장부에 날짜별로 기록·관리하면 됩니다.`,
+    ref: '이력관리법 시행령 제4조제2항 [별표1]'
+  },
+  {
+    cat: '대상·의무',
+    q: '‘종업원 5인 이상’에서 종업원의 범위는 어떻게 되나요?',
+    keys: ['종업원','5인','범위','인원'],
+    a: `이력관리법에는 종업원의 범위를 따로 정하고 있지 않습니다.
+
+영업허가(신고) 관청이 관리하는 영업허가 관리대장에 기재된 종업원 수를 기준으로 보며, 해당 시장·군수·구청장에게 신고한 종업원 수가 연간 5명 이상이면 전산신고 대상자에 해당합니다.
+
+보다 정확한 판단은 해당 지방자치단체에 문의하시기 바랍니다.`,
+    ref: '축산물위생관리법 제22조, 같은 법 시행규칙 제30조제4항'
+  },
+  {
+    cat: '대상·의무',
+    q: '정육점과 식당을 함께 운영하는데, 식당도 이력제 대상인가요?',
+    keys: ['정육식당','식당','음식점','700제곱미터','겸업'],
+    a: `정육식당처럼 식육판매업 영업신고가 되어 있다면 식육판매업소에 해당하므로, 보관·판매하는 쇠고기·돼지고기에 이력번호를 표시하고 매입·반입실적을 장부에 날짜별로 기록해 1년간 보관·관리해야 합니다. 축산물위생관리법에 따른 거래내역서도 기록·관리해야 합니다.
+
+한편 「식품위생법 시행령」 제25조에 따라 휴게음식점 또는 일반음식점 영업을 신고한 곳 중 영업장 면적이 700㎡ 이상인 곳은 이력번호 표시 의무가 있습니다.`,
+    ref: '식품위생법 시행령 제25조'
+  },
+  {
+    cat: '대상·의무',
+    q: '부산물·양념육·수입육도 이력제 신고 대상인가요?',
+    keys: ['부산물','양념육','수입육','대상축산물','범위','미트와치'],
+    a: `이력관리대상축산물은 국내산 지육과 그 지육을 이용해 생산된 정육 또는 포장육입니다. 따라서 부산물, 양념육 등은 대상에서 제외되며 전산신고할 필요가 없습니다.
+
+수입육(수입 쇠고기)은 별도로 「수입유통이력관리시스템(미트와치)」에서 관리하므로 세부 사항은 그쪽으로 문의하셔야 합니다.`,
+    ref: '이력관리법 제2조제8호(이력관리대상축산물 정의)'
+  },
+
+  /* ───── 이력번호 표시 ───── */
+  {
+    cat: '이력번호 표시',
+    q: '냉장고에 보관 중인 고기에도 이력번호를 표시해야 하나요?',
+    keys: ['냉장고','보관','재고','남은고기','표시'],
+    a: `네, 냉장고에 보관 중인 고기에도 모두 이력번호를 표시해야 합니다.
+
+• 부분육을 납품받았다면 이미 라벨이 부착되어 있으므로 그대로 보관 후 판매하면 됩니다.
+• 라벨이 붙지 않은 지육 등은 이력번호·종류·등급 등이 같은 고기끼리 포장해 담은 뒤 라벨을 붙이거나 표지판 등으로 표시합니다. 이때 수기로 이력번호를 적어도 됩니다.
+
+거래·판매 후 남은 축산물을 보관할 때도 이력번호를 표시해 두고, 다른 축산물과 번호가 뒤바뀌지 않도록 관리해야 합니다.`,
+    ref: ''
+  },
+  {
+    cat: '이력번호 표시',
+    q: '이력번호 표시를 위해 전자저울을 꼭 사야 하나요? 구입비 지원은 없나요?',
+    keys: ['전자저울','저울','장비','비용','지원','라벨'],
+    a: `전자저울 사용은 판매업소의 의무사항이 아닙니다. 의무는 '이력번호 표시'이지 '전자라벨 출력'이 아니므로, 식육판매표지판 등에 수기로 이력번호를 정확하게 표시하시면 됩니다. 따라서 전자저울 구입비용은 지원되지 않습니다.
+
+판매업소가 반드시 갖춰야 할 장비는 없습니다. 다만 전산신고 의무 대상 판매업소라면 인터넷이 되는 PC 또는 축산물이력제 신고 모바일앱으로 거래내역을 등록·관리할 수 있어야 합니다.
+
+참고로 매장 관리 효율을 위해 전자저울을 쓰는 경우에는 이력(묶음)번호가 출력되도록 프로그램을 업데이트할 필요가 있습니다.`,
+    ref: ''
+  },
+  {
+    cat: '이력번호 표시',
+    q: '소비자에게 고기를 담아줄 때 비닐봉투나 영수증에도 이력번호를 표시해야 하나요?',
+    keys: ['비닐봉투','포장','영수증','소비자','교부'],
+    a: `별도로 표시하지 않아도 됩니다. 진열판매대의 식육판매표지판에 이력번호를 표시해 두었고 소비자가 이를 확인하고 구매할 수 있기 때문입니다.
+
+다만 소비자가 이력번호가 적힌 영수증 등을 요구하는 경우에는, 판매 시 영수증·거래명세서에 이력번호를 기재해 제공해야 합니다.`,
+    ref: ''
+  },
+  {
+    cat: '이력번호 표시',
+    q: '이력번호가 2개 이상 섞인 고기를 한 채반에 판매할 때는 어떻게 표시하나요?',
+    keys: ['묶음번호','2개','혼합','채반','표시방법'],
+    a: `2개 이상의 이력번호가 섞인 축산물을 한 개의 채반에서 판매하는 경우, 해당되는 모든 이력번호를 표시하거나 하나의 묶음번호로 표시할 수 있습니다.
+
+주의할 점은, 하나의 식육판매표지판에는 하나의 묶음번호만 표시해야 한다는 것입니다. 묶음번호 2개를 한 표지판에 같이 적을 수 없으며, 2~3개 이상의 이력번호를 함께 팔 경우에는 묶음을 구성한 뒤 그 묶음번호를 표시해야 합니다.`,
+    ref: '이력관리법 시행규칙 별표 13'
+  },
+  {
+    cat: '이력번호 표시',
+    q: '식육판매업소에서도 묶음번호를 만들 수 있나요?',
+    keys: ['묶음번호','구성','구성내역서','생성'],
+    a: `네, 식육판매업소에서도 묶음번호를 구성할 수 있습니다.
+
+• 전산신고 대상 업소 : 소비자가 인터넷 등으로 이력정보를 조회할 수 있도록 묶음번호 구성내역서를 이력관리시스템에 신고해야 합니다.
+• 비전산신고 대상자 : 구성내역 서류를 보관한 뒤, 구매자 등의 요청이 있으면 지체 없이 제공해야 합니다.`,
+    ref: ''
+  },
+  {
+    cat: '이력번호 표시',
+    q: '식육판매표지판에는 무엇을 기재해야 하나요?',
+    keys: ['식육판매표지판','표지판','기재사항','라벨'],
+    a: `「가축 및 축산물 이력관리에 관한 법률」 제18조에 따라 이력관리대상축산물의 포장지 및 식육판매표지판 등에 해당 이력번호를 표시해야 합니다.
+
+이력번호 이외의 축산물 표시기준(라벨지나 표지판에 함께 적어야 하는 그 밖의 사항)은 식품의약품안전처 소관이므로 식약처(1577-1255)로 문의하시기 바랍니다.`,
+    ref: '이력관리법 제18조'
+  },
+  {
+    cat: '이력번호 표시',
+    q: '입고된 고기의 이력번호는 어떻게 확인하나요?',
+    keys: ['입고','확인','거래명세표','등급판정확인서','도축검사증명서'],
+    a: `입고 시 포장육에 부착된 이력(묶음)번호와 거래명세표, 축산물등급판정확인서, 도축검사증명서 등에 적힌 이력(묶음)번호가 일치하는지 확인한 뒤 받으면 됩니다.
+
+지육 상태로 입고된 경우에는 지육에 표시된 이력번호(또는 라벨지)와 위 서류의 번호를 대조하고, 납품처가 전산신고 대상 포장처리업소라면 축산물이력제 홈페이지의 이력정보 조회로 해당 포장처리업소명 등을 확인할 수 있습니다.`,
+    ref: ''
+  },
+  {
+    cat: '이력번호 표시',
+    q: '이력번호가 표시되지 않은 닭·오리고기나 계란이 들어왔습니다. 팔아도 되나요?',
+    keys: ['닭','오리','계란','미표시','가금','판매금지'],
+    a: `판매할 수 없습니다. 이력번호가 표시되지 않은 닭·오리고기와 계란은 판매장에서 판매하면 안 됩니다.
+
+이력번호가 표시되지 않은 채 들어온 경우에는 해당 납품처에 포장지의 이력번호 표시를 요청해야 합니다. 표시된 이력번호가 지워지거나 알아보기 어려운 경우에도 다시 표시해야 합니다.`,
+    ref: ''
+  },
+  {
+    cat: '이력번호 표시',
+    q: '전통시장에서 포장하지 않고 파는 닭·오리고기는 어떻게 표시하나요?',
+    keys: ['전통시장','비포장','닭','오리','표지판'],
+    a: `전통시장 내 위생조건이 갖추어진 식육판매업소에서 닭·오리고기를 포장하지 않고 판매하는 경우에는, 식육판매표지판 등에 이력번호를 표시하여야 합니다.`,
+    ref: ''
+  },
+  {
+    cat: '이력번호 표시',
+    q: '돼지고기도 등급을 표시해야 하나요?',
+    keys: ['돼지','등급','등급표시','등외등급'],
+    a: `돼지고기는 쇠고기와 달리 등급표시가 의무사항이 아닙니다.
+
+다만 식육포장처리 단계에서 등외등급은 별도로 구분해 포장처리하고 묶음번호를 사용하도록 하고 있습니다. 등외등급과 일반등급(1+, 1, 2)은 구분되어 입고되므로, 등급을 표시해 판매하는 판매업소라면 해당 돼지고기의 정확한 이력번호와 등급을 확인한 뒤 판매해야 합니다.`,
+    ref: ''
+  },
+
+  /* ───── 거래내역 기록·신고 ───── */
+  {
+    cat: '거래내역 신고',
+    q: '소비자에게 판매한 내역까지 하나하나 신고해야 하나요?',
+    keys: ['소비자','판매건','신고제외','사업자'],
+    a: `아닙니다. 사업자등록번호가 있는 업체끼리의 거래내역만 신고 대상입니다.
+
+일반 소비자에게 판매한 건은 전산에 신고하거나 장부에 기록·관리할 필요가 없습니다.`,
+    ref: ''
+  },
+  {
+    cat: '거래내역 신고',
+    q: '거래내역 신고는 언제까지 해야 하나요?',
+    keys: ['신고기한','5일','기한','언제까지'],
+    a: `매입·판매 등 거래 행위가 일어난 날로부터 5일 이내에 신고해야 합니다. (토요일과 공휴일은 제외)
+
+전산장애 등으로 이력관리시스템을 이용할 수 없었던 경우에는 그 사유가 해소된 날의 다음 날까지 신고합니다.`,
+    ref: ''
+  },
+  {
+    cat: '거래내역 신고',
+    q: '전산신고 대상이 아닌데, 장부는 어떻게 쓰고 얼마나 보관하나요?',
+    keys: ['장부','비전산','보관기간','1년','2년','서식'],
+    a: `전산신고를 할 필요는 없지만 거래내역을 자체적으로 장부에 기록·관리해야 합니다.
+
+• 매입·반입실적 : 이력관리법 시행규칙 <별지 제10호서식 – 국내산이력축산물의 거래신고서>
+• 판매·반출실적 : 이력관리법 시행규칙 <별지 제22호서식 – 이력관리대상축산물 판매·반출 실적>
+
+보관기간은 매입에 관한 기록은 매입일로부터 1년간, 매출(판매)에 관한 기록은 매출일로부터 2년간입니다.`,
+    ref: '이력관리법 시행규칙 별지 제10호·제22호서식'
+  },
+  {
+    cat: '거래내역 신고',
+    q: '전산신고 대상 판매업소인데 매입·매출 신고는 어떻게 하나요?',
+    keys: ['매입','매출','전산신고','등록방법'],
+    a: `국내산이력축산물을 거래하는 경우, 이력관리법 시행규칙 <별지 제10호서식 – 국내산이력축산물의 거래신고서>에 따라 매입·반입 및 판매·반출 실적을 이력관리시스템에 등록해 날짜별로 기록·관리해야 합니다.
+
+같은 날짜에 이력번호·원료(부위)·판매처가 모두 같은 건이라면 중량을 합산해 신고할 수 있습니다.`,
+    ref: '이력관리법 시행규칙 별지 제10호서식'
+  },
+  {
+    cat: '거래내역 신고',
+    q: '대형마트 물류센터를 거쳐 납품되는 경우 거래내역 신고는 누가 하나요?',
+    keys: ['물류센터','대형마트','보관창고','EDI','납품'],
+    a: `축산물을 납품하는 업체가 최종 판매처를 모르고 물류센터로 상품을 배송하는 경우에는 최종 반출처를 물류센터로 할 수 있습니다.
+
+물류센터는 식육판매업소 등이 아니므로 신고 의무가 없습니다. 다만 물류센터에서 최종 식육판매업소로 반출되면, 그 식육판매업소가 거래내역 신고를 해야 합니다.`,
+    ref: ''
+  },
+
+  /* ───── 이력관리시스템 ───── */
+  {
+    cat: '이력관리시스템',
+    q: '이력제 전산(이력관리시스템)을 쓰려면 어떻게 신청하나요?',
+    keys: ['회원가입','이용신청','아이디','전산','신청서'],
+    a: `두 가지 방법이 있습니다.
+
+① PC 또는 모바일앱의 [유통업소 이용신청] 메뉴에서 바로 신청
+② [축산물이력제 홈페이지 > 고객지원실 > 자료실] 194번 게시글의 [이력관리시스템 이용 신청서]를 작성해 첨부서류와 함께 이력지원실(팩스 044-410-7178)로 보낸 뒤 연락
+
+확인 후 3일 이내에 이력관리시스템 아이디를 부여해 드립니다.
+※ 첨부서류 : 이력관리시스템 이용 신청서, 신고필증(축산물판매업 또는 식육즉석판매가공업), 사업자등록증`,
+    ref: '문의 : 이력지원실 1577-2633'
+  },
+  {
+    cat: '이력관리시스템',
+    q: '판매업소인데 이력제 전산을 꼭 이용해야 하나요?',
+    keys: ['전산','의무','선택','희망'],
+    a: `모든 판매업소가 전산을 써야 하는 것은 아닙니다.
+
+전산신고 의무 대상은 300㎡ 이상 기타식품판매업 영업장에서 영업하는 식육판매업자·식육즉석판매가공업자 중 종업원 5명 이상 또는 영업장 면적 50㎡ 이상인 경우입니다.
+
+해당하지 않는 판매업소라면 거래내역을 자체적으로 장부에 날짜별로 기록·관리하면 되며, 원하시면 희망 신청을 통해 전산을 이용하실 수도 있습니다.`,
+    ref: ''
+  },
+  {
+    cat: '이력관리시스템',
+    q: '매장이 여러 개인데 회원가입은 점포별로 해야 하나요?',
+    keys: ['점포','다점포','일괄','회원가입','대형마트'],
+    a: `점포 단위 가입과 일괄 가입 모두 가능합니다.
+
+다만 일부 대형마트처럼 1~2개의 대표 사업자번호 아래 점포별로 각각의 영업장 인허가번호가 있는 경우에는, 영업장 인허가번호에 따라 별도의 ID·비밀번호를 부여받을 수 있습니다.`,
+    ref: ''
+  },
+  {
+    cat: '이력관리시스템',
+    q: '포장처리업소가 반출신고를 했다는데 입고내역에서 조회되지 않습니다.',
+    keys: ['입고내역','조회안됨','반출신고','누락','수동등록'],
+    a: `정상적으로 반출신고가 되었다면, 반출처로 등록된 판매장의 [입고정보관리 – 입고내역조회] 메뉴에서 조회되어야 합니다.
+
+조회되지 않는다면 먼저 포장처리업소의 [포장실적반출관리 – 판매/반출실적조회] 메뉴에서 우리 매장 사업자번호로 출고등록이 제대로 되었는지 확인해 보세요.
+
+매입처에서 반출신고가 누락되어 입고내역이 없는 경우에는 [입고정보관리 – 입고내역조회]에서 수동으로 등록하거나, [입고정보관리 – 입고파일전송]에서 파일로 업로드할 수 있습니다.`,
+    ref: ''
+  },
+  {
+    cat: '이력관리시스템',
+    q: '한 곳에서 받은 고기인데 이력 조회를 하면 다른 포장처리업소까지 나옵니다.',
+    keys: ['조회','포장처리업소','이분도체','여러업소'],
+    a: `정상적인 경우입니다.
+
+지육은 구입처의 요구에 따라 이분도체, 사분도체 또는 부위별로 나뉠 수 있고, 그 부위들이 여러 포장처리업소로 반출될 수 있습니다. 각 포장처리업소가 정상적으로 포장처리실적을 신고해 함께 조회되는 것이므로, 판매장에서는 내가 매입한 포장처리업소의 정보가 정확히 맞는지만 확인하시면 됩니다.`,
+    ref: ''
+  },
+  {
+    cat: '이력관리시스템',
+    q: '이력제에서 개체 조회를 했는데 제가 산 정육점 이름이 안 나옵니다. 괜찮은 건가요?',
+    keys: ['조회','판매장','업소명','공개범위','소비자'],
+    a: `정상입니다.
+
+「가축 및 축산물 이력관리에 관한 법률」 시행령 제8조의 국내산이력축산물 이력정보 공개 범위에 따라, 판매장에 대한 정보는 공개 대상에 포함되지 않습니다.`,
+    ref: '이력관리법 시행령 제8조'
+  },
+
+  /* ───── 계란(식용란) ───── */
+  {
+    cat: '계란(식용란)',
+    q: '식용란수집판매업자가 지켜야 할 의무사항은 무엇인가요?',
+    keys: ['계란','식용란','수집판매','의무사항','난각'],
+    a: `① [입고] 난각에 기록된 이력번호의 일치 여부를 확인한 뒤 받습니다.
+② [판매] 난각에 이력번호가 표시되어 있는지 확인하고, 구매자가 요청하면 해당 이력번호를 영수증 및 거래명세서에 기재해 교부합니다.
+③ [기록] 사업자 간 거래내역을 장부에 기록·관리하거나, 이력관리시스템을 이용하는 경우 사유 발생일로부터 5일 이내(토·공휴일 제외)에 전산신고합니다.
+
+전산을 사용하지 않는 경우 매입 기록은 1년, 매출 기록은 2년간 보관합니다.`,
+    ref: '이력관리법 시행규칙 제20조 및 별표 13'
+  },
+  {
+    cat: '계란(식용란)',
+    q: '계란의 이력번호(난각번호)는 어떻게 구성되나요?',
+    keys: ['난각번호','계란','이력번호','사육환경번호','산란일'],
+    a: `계란 난각에 표기된 번호가 곧 이력번호이며, 다음과 같이 구성됩니다.
+
+산란일자(4자리) + 생산자고유번호(5자리, 축산업허가증의 고유번호) + 사육환경번호(1자리)
+
+※ 사육환경번호 : 1-방사사육, 2-축사 내 평사, 3-개선된 케이지, 4-기존 케이지
+
+계란은 같은 생산농장에서 같은 산란일에 생산된 것만 한 포장에 담을 수 있으므로, 여러 농장의 계란에 하나의 이력번호를 부여할 수 없습니다.`,
+    ref: '축산물위생관리법(식용란 최소 포장단위 기준)'
+  },
+  {
+    cat: '계란(식용란)',
+    q: '전산신고를 해야 하는 식용란수집판매업체 기준은 무엇인가요?',
+    keys: ['계란','수집판매','HACCP','전산신고','기준'],
+    a: `① 식용란수집판매업으로 HACCP 인증을 받은 식용란수집판매업자
+② 전산신고 희망자(식용란수집판매업체)
+
+전산신고를 하는 업체는 식용란거래내역서를 따로 작성하지 않아도 됩니다.`,
+    ref: ''
+  },
+  {
+    cat: '계란(식용란)',
+    q: '계란은 판 수와 알 수 중 무엇으로 신고하나요?',
+    keys: ['계란','판','알','수량','신고단위'],
+    a: `전산신고는 '일수(알 수)'로 등록해 주셔야 합니다.`,
+    ref: ''
+  },
+  {
+    cat: '계란(식용란)',
+    q: '식당이나 마트로 계란을 납품할 때 전산신고는 어떻게 하나요?',
+    keys: ['계란','식당','마트','납품','신고'],
+    a: `• 식당 납품 : 담당자 판단에 따라 진행합니다. (해도 되고 하지 않아도 됩니다)
+• 마트 납품 : 소비자에게 직접 판매되는 곳이므로 반드시 전산신고해야 합니다.
+
+참고로 마트 자체가 계란 거래를 전산신고하려면 수집판매업 권한이 있어야 하며, 권한이 없으면 전산 사용이 불가합니다.
+
+소비자가 직접 구입한 건은 신고 대상이 아닙니다.`,
+    ref: ''
+  },
+  {
+    cat: '계란(식용란)',
+    q: '학교 급식용으로 나가는 계란도 이력번호가 있어야 하나요?',
+    keys: ['학교','급식','가정용','업소용','발급대상'],
+    a: `이력제 대상은 최종 소비를 목적으로 하는 '가정용 계란'에 한정되어 있으므로, 급식용은 이력번호 발급 대상이 아닙니다.
+
+마찬가지로 업소용·가공용 계란도 이력번호 부여·표시 대상이 아닙니다.`,
+    ref: ''
+  },
+
+  /* ───── 위반·과태료 ───── */
+  {
+    cat: '위반·과태료',
+    q: '이력제를 지키지 않으면 과태료가 얼마나 나오나요?',
+    keys: ['과태료','위반','처분','벌금','금액'],
+    a: `식육판매업소 관련 주요 위반행위의 과태료(단위: 만원)입니다.
+
+• 포장처리 및 거래·판매 신고를 하지 않은 경우 (법 제34조제1항제16호)
+  → 1회 70 / 2회 140 / 3회 280 / 4회 이상 500
+
+• 이력번호의 게시 또는 표시를 하지 않거나 거짓으로 한 경우 (제17호)
+  → 1회 70 / 2회 140 / 3회 280 / 4회 이상 500
+
+• 이력번호를 명시한 거래명세서 등을 발급하지 않은 경우 (제18호)
+  → 1회 70 / 2회 140 / 3회 280 / 4회 이상 500
+
+• 장부·거래내역서에 기록하지 않거나 거짓 기록, 보관기한 미준수 (제21호)
+  → 1회 50 / 2회 100 / 3회 200 / 4회 이상 400
+
+• 시정명령을 위반한 경우 (제19호)
+  → 1회 100 / 2회 200 / 3회 400 / 4회 이상 500
+
+※ 위반 횟수는 영업장 단위로, 최근 3년간 같은 위반행위로 과태료를 부과받은 경우에 적용됩니다.`,
+    ref: '이력관리법 제34조제1항'
+  }
+];
+
+/* ──────────────────────────────────────────────────
+   3. UI LOGIC
+────────────────────────────────────────────────── */
+function triggerStagger(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.classList.remove('loaded');
+  void container.offsetWidth;
+  container.classList.add('loaded');
+}
+
+function goto(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const navId = id.replace('sc-', 'nv-');
+  if (document.getElementById(navId)) document.getElementById(navId).classList.add('active');
+
+  if (id === 'sc-home') triggerStagger('home-stagger');
+  if (id === 'sc-manual') triggerStagger('man-list');
+  if (id === 'sc-checklist') checkRollover();
+  if (id === 'sc-faq') triggerStagger('faq-list');
+
+  window.scrollTo(0, 0);
+}
+
+function esc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/* ──────────────────────────────────────────────────
+   4. FAQ 렌더링 · 검색
+────────────────────────────────────────────────── */
+let faqCat = '전체';
+let faqOpen = {};
+
+const FAQ_CATS = ['전체', ...Array.from(new Set(FAQ_DATA.map(f => f.cat)))];
+const FAQ_HOT_KEYS = ['이력번호', '전산신고', '장부', '냉장고', '전자저울', '묶음번호', '과태료', '계란', '5일'];
+
+function initFaqFilters() {
+  document.getElementById('faq-cats').innerHTML = FAQ_CATS.map(c =>
+    `<div class="q-tag${c === faqCat ? ' on' : ''}" onclick="setFaqCat('${c}')">${esc(c)}</div>`
+  ).join('');
+  document.getElementById('faq-keys').innerHTML = FAQ_HOT_KEYS.map(k =>
+    `<div class="q-tag" onclick="faqSearch('${k}')"># ${esc(k)}</div>`
+  ).join('');
+}
+
+function setFaqCat(c) {
+  faqCat = c;
+  initFaqFilters();
+  filterFaq();
+}
+
+function faqSearch(k) {
+  document.getElementById('faq-input').value = k;
+  filterFaq();
+}
+
+function highlight(text, q) {
+  const safe = esc(text);
+  if (!q) return safe;
+  try {
+    const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    return safe.replace(re, m => `<span class="hl">${m}</span>`);
+  } catch (e) { return safe; }
+}
+
+function filterFaq() {
+  const q = document.getElementById('faq-input').value.trim().toLowerCase();
+  let list = FAQ_DATA.map((f, i) => Object.assign({ idx: i }, f));
+
+  if (faqCat !== '전체') list = list.filter(f => f.cat === faqCat);
+
+  if (q) {
+    list = list.filter(f =>
+      f.q.toLowerCase().includes(q) ||
+      f.a.toLowerCase().includes(q) ||
+      f.cat.toLowerCase().includes(q) ||
+      f.keys.some(k => k.toLowerCase().includes(q))
+    );
+  }
+  renderFaq(list, q);
+}
+
+function renderFaq(list, q) {
+  const area = document.getElementById('faq-list');
+  const countEl = document.getElementById('faq-count');
+
+  countEl.innerHTML = `총 <b>${list.length}</b>건의 질문 ${q ? `(검색어: "${esc(q)}")` : ''}`;
+
+  if (!list.length) {
+    area.innerHTML = `<p class="empty-msg">검색 결과가 없습니다.<br>다른 키워드로 검색하거나 카테고리를 '전체'로 바꿔보세요.</p>`;
+    return;
+  }
+
+  area.innerHTML = list.map(f => `
+    <div class="faq-item ${faqOpen[f.idx] ? 'open' : ''}" id="faq-${f.idx}">
+      <div class="faq-q" onclick="toggleFaq(${f.idx})">
+        <div class="mark">Q</div>
+        <div class="txt">
+          <h4>${highlight(f.q, q)}</h4>
+          <span class="faq-cat">${esc(f.cat)}</span>
+        </div>
+        <span class="faq-arrow">❯</span>
+      </div>
+      <div class="faq-a">
+        <div class="a-body">${highlight(f.a, q)}</div>
+        <div class="a-ref">${f.ref ? '근거 : ' + esc(f.ref) + '<br>' : ''}출처 : ${esc(FAQ_SOURCE)}</div>
+        <div class="a-keys">${f.keys.map(k => `<span onclick="faqSearch('${k}')"># ${esc(k)}</span>`).join('')}</div>
+      </div>
+    </div>
+  `).join('');
+
+  triggerStagger('faq-list');
+}
+
+function toggleFaq(i) {
+  faqOpen[i] = !faqOpen[i];
+  const el = document.getElementById('faq-' + i);
+  if (el) el.classList.toggle('open', !!faqOpen[i]);
+}
+
+/* ──────────────────────────────────────────────────
+   5. 자체위생관리 기준 점검표 (매일 점검 · 이미지로 보관)
+   출처 : 축산물품질평가원 「축산물 이력제 거래내역 기록 서식집(2025)」
+          04. 자체위생관리 기준 점검표
+          (근거 : 축산물 위생관리법 시행규칙 [별표 2] 영업장 또는 업소의 위생관리기준)
+────────────────────────────────────────────────── */
+const HYGIENE_ITEMS = [
+  { no: 1,  cat: '작업 전 위생관리', q: '식육을 판매하는 영업자 및 종업원 등의 위생복, 위생모 및 위생장갑 등 비치, 청결유지' },
+  { no: 2,  cat: '작업 전 위생관리', q: '영업장 내의 바닥, 벽, 천정, 화장실 등의 청결 유지' },
+  { no: 3,  cat: '작업 전 위생관리', q: '식육과 직접 접촉되는 도마, 육절기, 골절기 등의 표면에 고기찌꺼기·털·골분 등 이물질이나 세제 등 유해성 물질의 제거, 끓는 물에 칼·칼갈이 소독과 손 씻기' },
+  { no: 4,  cat: '작업 전 위생관리', q: '냉장(냉동)실, 진열장은 항상 청결하게 관리, 내부의 적정온도 유지' },
+  { no: 5,  cat: '작업 전 위생관리', q: '영업장 내 방충, 방서시설 설치 및 기능 유지' },
+  { no: 6,  cat: '작업 전 위생관리', q: '진열장 및 냉장·냉동고 내에 육류 이외 타 음식 등 동시보관 금지' },
+  { no: 7,  cat: '작업 중 위생관리', q: '축산물은 벽·바닥 등에 닿지 않도록 하고 냉동·냉장 등의 적절한 방법으로 보관·판매' },
+  { no: 8,  cat: '작업 중 위생관리', q: '위생복, 위생장갑 등을 착용하고 청결 유지' },
+  { no: 9,  cat: '작업 중 위생관리', q: '판매 중에 업소 밖이나 화장실 출입시 위생복, 앞치마와 장갑 등 탈의' },
+  { no: 10, cat: '작업 중 위생관리', q: '판매 중 흡연·음식물 섭취 및 껌 씹는 행위 삼가' },
+  { no: 11, cat: '작업 중 위생관리', q: '시계·반지·귀걸이 및 머리핀 등 장신구가 축산물에 접촉되지 않도록 유의' },
+  { no: 12, cat: '작업 후 위생관리', q: '시설·장비 및 도구 등에 대한 청소, 위생상태 및 작동상태 점검, 업소 내부 청소' },
+  { no: 13, cat: '작업 후 위생관리', q: '판매 등 작업 완료 후 도마, 칼, 칼갈이 등은 세척·소독하여 위생적으로 관리' },
+  { no: 14, cat: '기타', q: '도축검사증명서, 축산물등급판정확인서 비치 및 정기 건강검진' },
+  { no: 15, cat: '기타', q: '식육거래내역서, 자체위생관리기준 점검기록부의 기록 및 비치' },
+  { no: 16, cat: '기타', q: '식육의 부위별·등급별·품종별 구분표시, 원산지표시 판매 준수' }
+];
+
+const IMPROVE_ACTIONS = [
+  '① 즉시 시정조치함',
+  '② 자체교육 실시함',
+  '③ 기구류 소독 및 청소 실시함',
+  '④ 10일 이내 시설개선계획 및 개선함',
+  '⑤ 즉시 각종 증명서 및 확인서의 비치계획'
+];
+
+const RATES = [
+  { v: 'O', label: '○ 양호' },
+  { v: 'A', label: '△ 보통' },
+  { v: 'X', label: '× 불량' }
+];
+
+const DAY_KEY   = 'kape_hygiene_today_v2';   // 당일 점검 내역 (날짜가 바뀌면 자동 초기화)
+const STORE_KEY = 'kape_hygiene_store';      // 매장명 (날짜가 바뀌어도 유지)
+const CHECK_SOURCE = '축산물품질평가원 「축산물 이력제 거래내역 기록 서식집(2025)」 자체위생관리 기준 점검표';
+
+const p2 = n => String(n).padStart(2, '0');
+const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
+}
+function fmtDate(key) {
+  const [y, m, d] = key.split('-').map(Number);
+  return `${y}년 ${m}월 ${d}일 (${WEEKDAYS[new Date(y, m - 1, d).getDay()]})`;
+}
+
+/* ── 저장소 : 오늘 하루치만 보관한다 ── */
+function blankRec() {
+  return { date: todayKey(), items: {}, actions: [], saved: false };
+}
+function loadRec() {
+  try {
+    const r = JSON.parse(localStorage.getItem(DAY_KEY) || 'null');
+    // 저장된 날짜가 오늘이 아니면 점검 내역을 새로 시작한다
+    if (!r || r.date !== todayKey()) return blankRec();
+    return { date: r.date, items: r.items || {}, actions: r.actions || [], saved: !!r.saved };
+  } catch (e) { return blankRec(); }
+}
+function saveRec() {
+  try { localStorage.setItem(DAY_KEY, JSON.stringify(rec)); } catch (e) {}
+}
+
+function loadStoreName() {
+  try { return localStorage.getItem(STORE_KEY) || ''; } catch (e) { return ''; }
+}
+function saveStoreName() {
+  const v = document.getElementById('store-name-input').value;
+  try { localStorage.setItem(STORE_KEY, v); } catch (e) {}
+}
+
+let rec = loadRec();
+
+/* ── 날짜 롤오버 : 자정이 지나면 당일 점검표를 새로 시작 ── */
+function checkRollover() {
+  if (rec.date === todayKey()) return false;
+  rec = blankRec();
+  saveRec();
+  renderChecks();
+  hideSavedNote();
+  return true;
+}
+
+/* ── 렌더링 ── */
+function renderChecks() {
+  const dateEl = document.getElementById('insp-date');
+  if (dateEl) dateEl.innerText = fmtDate(rec.date);
+
+  const nameEl = document.getElementById('store-name-input');
+  if (nameEl && !nameEl.value) nameEl.value = loadStoreName();
+
+  let html = '';
+  let curCat = '';
+  HYGIENE_ITEMS.forEach(it => {
+    if (it.cat !== curCat) {
+      curCat = it.cat;
+      html += `<div class="cat-head"><span class="bar"></span>${esc(curCat)}</div>`;
+    }
+    const v = rec.items[it.no] || '';
+    html += `
+      <div class="check-item" data-v="${v}" id="ci-${it.no}">
+        <div class="check-top">
+          <div class="check-no">${it.no}</div>
+          <div class="check-txt">${esc(it.q)}</div>
+        </div>
+        <div class="rate-row">
+          ${RATES.map(r => `<button type="button" class="rate-btn ${v === r.v ? 'sel-' + r.v : ''}" onclick="setRate(${it.no}, '${r.v}')">${r.label}</button>`).join('')}
+        </div>
+      </div>`;
+  });
+  document.getElementById('check-list').innerHTML = html;
+
+  renderActions();
+  renderSummary();
+}
+
+function renderActions() {
+  const needs = Object.values(rec.items).some(v => v === 'A' || v === 'X');
+  document.getElementById('action-box').classList.toggle('show', needs);
+  if (!needs) {
+    if (rec.actions.length) { rec.actions = []; saveRec(); }
+    return;
+  }
+  document.getElementById('action-list').innerHTML = IMPROVE_ACTIONS.map((a, i) => `
+    <div class="act-item ${rec.actions.includes(i) ? 'on' : ''}" onclick="toggleAction(${i})">
+      <div class="box">✔</div><div>${esc(a)}</div>
+    </div>`).join('');
+}
+
+function countRates() {
+  let O = 0, A = 0, X = 0;
+  HYGIENE_ITEMS.forEach(it => {
+    const v = rec.items[it.no];
+    if (v === 'O') O++; else if (v === 'A') A++; else if (v === 'X') X++;
+  });
+  const done = O + A + X;
+  return { O, A, X, done, none: HYGIENE_ITEMS.length - done };
+}
+
+function renderSummary() {
+  const c = countRates();
+  document.getElementById('summary-bar').innerHTML = `
+    <div class="sum-cell"><div class="n" style="color:#22C55E">${c.O}</div><div class="l">양호 ○</div></div>
+    <div class="sum-cell"><div class="n" style="color:#F59E0B">${c.A}</div><div class="l">보통 △</div></div>
+    <div class="sum-cell"><div class="n" style="color:#EF4444">${c.X}</div><div class="l">불량 ×</div></div>
+    <div class="sum-cell"><div class="n" style="color:#94A3B8">${c.none}</div><div class="l">미점검</div></div>`;
+
+  const pct = Math.round((c.done / HYGIENE_ITEMS.length) * 100);
+  const fill = document.getElementById('ring-fill');
+  if (fill) fill.style.strokeDashoffset = 440 - (440 * pct / 100);
+  const pctEl = document.getElementById('ring-pct');
+  if (pctEl) pctEl.innerText = pct + '%';
+  const msg = document.getElementById('hero-msg');
+  if (msg) {
+    msg.innerText = c.done === 0 ? '오늘의 위생점검을 시작하세요.'
+      : pct === 100 ? (rec.saved ? '오늘 점검표를 저장했습니다.' : '점검 완료! 점검표를 저장하세요.')
+      : `${c.none}개 항목이 남았습니다.`;
+  }
+  document.getElementById('cl-success-banner').style.display = (pct === 100 && !rec.saved) ? 'block' : 'none';
+}
+
+/* ── 입력 ── */
+function setRate(no, v) {
+  checkRollover();
+  if (rec.items[no] === v) delete rec.items[no];   // 같은 버튼을 다시 누르면 선택 해제
+  else rec.items[no] = v;
+  rec.saved = false;
+  saveRec();
+
+  const el = document.getElementById('ci-' + no);
+  if (el) {
+    const nv = rec.items[no] || '';
+    el.setAttribute('data-v', nv);
+    el.querySelectorAll('.rate-btn').forEach((b, i) => {
+      b.className = 'rate-btn' + (RATES[i].v === nv ? ' sel-' + nv : '');
+    });
+  }
+  renderActions();
+  renderSummary();
+  hideSavedNote();
+}
+
+function toggleAction(i) {
+  const at = rec.actions.indexOf(i);
+  if (at >= 0) rec.actions.splice(at, 1);
+  else if (rec.actions.length < 5) rec.actions.push(i);
+  rec.saved = false;
+  saveRec();
+  renderActions();
+  renderSummary();
+}
+
+function resetChecks() {
+  if (!confirm('오늘의 점검 내역을 초기화 하시겠습니까?')) return;
+  rec = blankRec();
+  saveRec();
+  renderChecks();
+  hideSavedNote();
+}
+
+function showSavedNote(msg) {
+  const el = document.getElementById('saved-note');
+  el.innerHTML = msg;
+  el.classList.add('show');
+}
+function hideSavedNote() {
+  document.getElementById('saved-note').classList.remove('show');
+}
+
+/* ── 증빙 이미지 저장 ── */
+function rateText(v) {
+  return v === 'O' ? '○ 양호' : v === 'A' ? '△ 보통' : v === 'X' ? '× 불량' : '-';
+}
+function rateColor(v) {
+  return v === 'O' ? '#15803D' : v === 'A' ? '#B45309' : v === 'X' ? '#DC2626' : '#94A3B8';
+}
+
+async function captureAndDownload(node, fileName) {
+  if (typeof html2canvas === 'undefined') {
+    alert('이미지 저장 기능을 불러오지 못했습니다.\n인터넷 연결을 확인한 뒤 새로고침해 주세요.');
+    return false;
+  }
+  document.body.appendChild(node);
+  try {
+    const canvas = await html2canvas(node, { scale: 2, backgroundColor: '#ffffff' });
+
+    // Blob 방식이 용량 제한이 없고 파일명도 그대로 유지된다
+    const blob = await new Promise(res => {
+      if (canvas.toBlob) canvas.toBlob(b => res(b), 'image/jpeg', 0.95);
+      else res(null);
+    });
+
+    const link = document.createElement('a');
+    link.download = fileName;
+    link.rel = 'noopener';
+    link.href = blob ? URL.createObjectURL(blob) : canvas.toDataURL('image/jpeg', 0.95);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    if (blob) setTimeout(() => URL.revokeObjectURL(link.href), 10000);
+    return true;
+  } catch (err) {
+    console.error('보고서 생성 중 오류 발생:', err);
+    alert('점검표 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    return false;
+  } finally {
+    document.body.removeChild(node);
+  }
+}
+
+async function downloadDaily() {
+  checkRollover();
+  const c = countRates();
+  if (c.done === 0) {
+    alert('저장할 점검 내역이 없습니다.\n항목을 하나 이상 평가한 뒤 저장해 주세요.');
+    return;
+  }
+
+  const storeName = (document.getElementById('store-name-input').value || '').trim();
+
+  let rows = '';
+  let curCat = '';
+  HYGIENE_ITEMS.forEach(it => {
+    if (it.cat !== curCat) {
+      curCat = it.cat;
+      rows += `<tr><td colspan="3" style="background:#F1F5F9; font-weight:800; padding:13px; font-size:15px; border:1px solid #CBD5E1;">${curCat}</td></tr>`;
+    }
+    const v = rec.items[it.no] || '';
+    rows += `
+      <tr>
+        <td style="padding:13px 10px; border:1px solid #CBD5E1; text-align:center; width:6%; font-size:14px; font-weight:700;">${it.no}</td>
+        <td style="padding:13px; border:1px solid #CBD5E1; font-size:13.5px; line-height:1.55; width:78%;">${esc(it.q)}</td>
+        <td style="padding:13px; border:1px solid #CBD5E1; text-align:center; width:16%; font-size:15px; font-weight:800; color:${rateColor(v)};">${rateText(v)}</td>
+      </tr>`;
+  });
+
+  const acts = rec.actions.length
+    ? rec.actions.slice().sort((a, b) => a - b).map(i => IMPROVE_ACTIONS[i]).join('&nbsp;&nbsp;&nbsp;')
+    : '해당 없음';
+
+  const node = document.createElement('div');
+  node.style = "width:820px; padding:50px; background:#ffffff; position:fixed; top:-20000px; left:0; font-family:'Pretendard', sans-serif; color:#1E293B;";
+  node.innerHTML = `
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+      <span style="font-size:26px;">🥩</span>
+      <h1 style="font-size:29px; font-weight:900; letter-spacing:-1px;">자체위생관리 기준 점검표</h1>
+    </div>
+    <div style="font-size:15px; color:#64748B; margin-bottom:26px; padding-bottom:11px; border-bottom:2px solid #0F172A;">
+      매장명 : <b style="color:#1E293B;">${esc(storeName || '-')}</b> &nbsp;|&nbsp;
+      점검일 : <b style="color:#1E293B;">${fmtDate(rec.date)}</b><br>
+      <span style="display:inline-block; margin-top:7px;">
+        결과 : <b style="color:#15803D;">양호 ${c.O}</b> · <b style="color:#B45309;">보통 ${c.A}</b> · <b style="color:#DC2626;">불량 ${c.X}</b>${c.none ? ` · <b style="color:#94A3B8;">미점검 ${c.none}</b>` : ''}
+      </span>
+    </div>
+    <table style="width:100%; border-collapse:collapse;">${rows}</table>
+    <div style="margin-top:22px; border:1px solid #CBD5E1; border-radius:10px; padding:16px 18px; background:#F8FAFC;">
+      <div style="font-size:13px; font-weight:800; color:#0F172A; margin-bottom:7px;">지적항목에 대한 개선조치 사항</div>
+      <div style="font-size:13.5px; line-height:1.7; color:#334155;">${acts}</div>
+    </div>
+    <div style="margin-top:16px; font-size:11.5px; color:#64748B; line-height:1.7;">
+      ※ 평가 및 표기기준 : 양호(○) / 보통(△) 청결관리 및 지도 / 불량(×) 즉시 시정 및 개선(수리, 청소, 소독, 교육 등)<br>
+      ※ 영업자는 매일 자체위생관리기준의 준수 여부를 점검하여 점검일지에 기록하고, 점검일지는 최종 기재일부터 3개월간 보관하여야 합니다.
+    </div>
+    <div style="margin-top:26px; text-align:center; font-size:11.5px; color:#94A3B8; line-height:1.6;">
+      출처 : ${CHECK_SOURCE}<br>
+      근거 : 축산물 위생관리법 시행규칙 [별표 2] 영업장 또는 업소의 위생관리기준
+    </div>`;
+
+  const n = new Date();
+  const fname = `${n.getFullYear()}${p2(n.getMonth() + 1)}${p2(n.getDate())}_${p2(n.getHours())}${p2(n.getMinutes())}${p2(n.getSeconds())}.jpg`;
+
+  const ok = await captureAndDownload(node, fname);
+  if (ok) {
+    rec.saved = true;
+    saveRec();
+    renderSummary();
+    showSavedNote(`✅ 오늘 점검표를 <b>${fname}</b> 으로 저장했습니다.<br>저장된 이미지를 점검일지로 <b>3개월간</b> 보관해 주세요. (화면의 점검 내역은 내일 자동으로 초기화됩니다)`);
+  }
+}
+
+/* ──────────────────────────────────────────────────
+   6. 축산유통의 이해 (교육)
+   출처 : 「제3장 축산물 유통」 요약
+          통계 : 축산물품질평가원 축산물 유통정보조사 보고서(2023~2024),
+                 한국농촌경제연구원
+────────────────────────────────────────────────── */
+const C_FARM  = '#16A34A';   // 농가수취 (강조색)
+const C_OUT   = '#38BDF8';   // 출하   ┐
+const C_WHOLE = '#0284C7';   // 도매   │ 한 색상 계열의 순차 램프 (밝을수록 작은 비중)
+const C_RETL  = '#075985';   // 소매   ┘
+
+const EDU_DATA = [
+  {
+    icon: '🚚', bg: '#E0F2FE', fg: '#0369A1',
+    title: '축산물 유통이란',
+    sub: '농장에서 식탁까지, 4단계 흐름',
+    body: `
+      <p>축산물 유통이란 <b>가축에서 얻은 원재료와 가공품이 최종 소비자에게 전달되기까지 관여하는 모든 영업활동</b>을 말합니다.
+      농가·생산자단체, 공판장·도축장, 식육포장처리업체, 도·소매업체, 그리고 정책과 규제를 맡는 공공기관이 함께 참여합니다.</p>
+
+      <div class="flow">
+        <div class="flow-step"><div class="n">STEP 1</div><div class="t">투입</div><div class="d">종축·사료</div></div>
+        <div class="flow-arrow">❯</div>
+        <div class="flow-step"><div class="n">STEP 2</div><div class="t">생산</div><div class="d">사육·출하</div></div>
+        <div class="flow-arrow">❯</div>
+        <div class="flow-step"><div class="n">STEP 3</div><div class="t">도매</div><div class="d">도축·경매·가공</div></div>
+        <div class="flow-arrow">❯</div>
+        <div class="flow-step"><div class="n">STEP 4</div><div class="t">소매</div><div class="d">최종 판매</div></div>
+      </div>
+
+      <p class="muted">제품을 물리적으로 전달하는 경로에 초점을 둔 <b>유통</b>은, 고객 가치 창출을 위한
+      4P(제품·가격·홍보·유통)를 다루는 <b>마케팅</b>의 한 요소이기도 합니다.</p>
+
+      <div class="edu-sub"><span class="bar"></span>유통의 3대 기능</div>
+      <div class="def">
+        <h5>① 상적 유통 — 소유권의 이동</h5>
+        <p>가격결정과 거래가 이루어지는 기능입니다. 대금은 소비자 → 소매 → 도매 → 생산자 방향으로 흐릅니다.</p>
+      </div>
+      <div class="def g">
+        <h5>② 물적 유통 — 실물의 이동</h5>
+        <p>수송·보관·포장·가공·하역이 포함됩니다. 상품은 생산자 → 도매 → 소매 → 소비자 방향으로 흐릅니다.</p>
+      </div>
+      <div class="def o">
+        <h5>③ 유통 조성 — 위 둘을 돕는 기능</h5>
+        <p>유통정보, 표준화·등급화, 유통금융, 위험부담, 유통교육, 유통행정(도축장 구조조정, HACCP 등)으로 구성됩니다.
+        <b>등급제</b>는 표준화·등급화를, <b>이력제</b>는 유통정보와 유통행정을 담당하는 대표 제도입니다.</p>
+      </div>`
+  },
+  {
+    icon: '🧬', bg: '#FFE4E6', fg: '#E11D48',
+    title: '축산물 유통의 특수성',
+    sub: '다른 농산물과 무엇이 다른가',
+    body: `
+      <p>축산물은 살아 있는 가축에서 출발해 여러 번 형태가 바뀌고, 부패하기 쉽습니다.
+      그래서 다른 상품과 구별되는 <b>여섯 가지 특성</b>을 가집니다.</p>
+      <div class="pt-grid">
+        <div class="pt"><div class="h">① 가축 자체의 상품성</div><div class="b">성축뿐 아니라 송아지·자돈 등 어린 가축도 거래 대상</div></div>
+        <div class="pt"><div class="h">② 복잡한 유통단계</div><div class="b">도축·가공·포장처리·도소매 등 다단계 구조</div></div>
+        <div class="pt"><div class="h">③ 상품 형태 변화</div><div class="b">생축 → 지육 → 부분육 → 정육으로 바뀌며 중량 손실 발생</div></div>
+        <div class="pt"><div class="h">④ 위생·안전성</div><div class="b">부패성이 높아 전 과정 콜드체인과 위생관리 필수</div></div>
+        <div class="pt"><div class="h">⑤ 비탄력적 공급</div><div class="b">사육 기간이 길어 수요 변화에 맞춘 공급 조절이 어려움</div></div>
+        <div class="pt"><div class="h">⑥ 탄력적 소비</div><div class="b">단가가 높아 가격·소득 변화에 소비가 민감하게 반응</div></div>
+      </div>`
+  },
+  {
+    icon: '📈', bg: '#DCFCE7', fg: '#15803D',
+    title: '달라지는 유통 환경',
+    sub: '소비 증가 · 채널 변화 · 시장개방',
+    body: `
+      <div class="edu-sub"><span class="bar"></span>육류 소비는 계속 늘고 있습니다</div>
+      <div class="stat-row">
+        <div class="stat"><div class="v">33.5㎏</div><div class="k">2002년<br>1인당 3대 육류</div></div>
+        <div class="stat"><div class="v">60.1㎏</div><div class="k">2024년<br>약 79% 증가</div></div>
+        <div class="stat"><div class="v">65.4㎏</div><div class="k">2033년<br>전망치</div></div>
+      </div>
+      <p class="muted">2022년에는 3대 육류(소·돼지·닭) 소비량이 <b>6대 과일 소비량을 넘어섰습니다.</b> (한국농촌경제연구원)</p>
+
+      <div class="edu-sub"><span class="bar"></span>소비자가 달라졌습니다</div>
+      <div class="def">
+        <h5>가정간편식(HMR)과 온라인 구매 확대</h5>
+        <p>1인 가구 증가와 고령화로 소량·간편 소비가 늘고 있습니다.</p>
+      </div>
+      <div class="def g">
+        <h5>프리미엄과 실속형으로 양극화</h5>
+        <p>고급 축산물을 찾는 소비와 가성비·대용량을 찾는 소비가 동시에 커지고 있습니다.</p>
+      </div>
+      <div class="def o">
+        <h5>동물복지·저탄소 등 윤리적 소비 확산</h5>
+        <p>어떻게 길렀는지를 따져 사는 소비자가 늘고 있습니다.</p>
+      </div>
+
+      <div class="edu-sub"><span class="bar"></span>생산과 유통 구조도 바뀌고 있습니다</div>
+      <p>호당 사육 규모가 커지고(2020→2024년 소 +19.8%, 돼지 +10.1%) 닭·오리의 계열화가 심화되었습니다.
+      유통은 산지 경매와 도매시장을 거치는 다단계 구조에서
+      <b>식육포장처리업체와 대형 소매업체 간 직거래, 온라인·D2C 판매, 온라인 경매, ICT 기반 이력추적, 콜드체인 고도화</b>로 빠르게 옮겨가고 있습니다.</p>
+      <p>시장개방도 가속되어 <b>미국산 쇠고기 관세는 2026년 1월 완전 철폐</b>되었고, <b>호주산은 2028년 1월 철폐</b>될 예정입니다.</p>`
+  },
+  {
+    icon: '💰', bg: '#FEF3C7', fg: '#B45309',
+    title: '유통비용 들여다보기',
+    sub: '소비자가 1만원 중 유통에 쓰이는 돈',
+    body: `
+      <p><b>유통비용률</b>은 소비자가격에서 농가수취가격을 뺀 유통비용이, 소비자가격에서 차지하는 비율입니다.</p>
+
+      <div class="hero-fig">
+        <div class="v">49.0%</div>
+        <div class="k">2024년 주요 축산물 유통비용률 (전년 49.3% 대비 0.3%p 하락)</div>
+      </div>
+      <p class="muted" style="text-align:center; margin-bottom:18px;">소비자가 <b>1만원</b>을 내면 약 <b>4,900원</b>이 운송·가공·보관·판매 등 유통 과정에 쓰입니다.</p>
+
+      <div class="edu-sub"><span class="bar"></span>소비자가격 100원은 어디로 가나</div>
+      <div class="cost-bar" aria-hidden="true">
+        <span style="width:51.3%; background:${C_FARM};"></span>
+        <span style="width:1.6%;  background:${C_OUT};"></span>
+        <span style="width:17.7%; background:${C_WHOLE};"></span>
+        <span style="width:29.4%; background:${C_RETL};"></span>
+      </div>
+      <div class="cost-legend">
+        <div class="cl-row"><span class="sw" style="background:${C_FARM}"></span><span class="nm">농가수취</span><span class="vl">51.0%</span></div>
+        <div class="cl-row"><span class="sw" style="background:${C_OUT}"></span><span class="nm">출하 단계</span><span class="vl">1.6%</span></div>
+        <div class="cl-row"><span class="sw" style="background:${C_WHOLE}"></span><span class="nm">도매 단계</span><span class="vl">17.7%</span></div>
+        <div class="cl-row"><span class="sw" style="background:${C_RETL}"></span><span class="nm">소매 단계</span><span class="vl">29.4%</span></div>
+      </div>
+      <p class="muted" style="margin-top:11px;">유통비용 중에서는 <b>소매 단계 비중이 가장 큽니다.</b> 쇼케이스·냉장 유지비, 진열·포장·폐기 관리비,
+      판매 인건비, 임차료 등이 여기에 들어갑니다. (반올림으로 합계가 100%와 약간 다를 수 있습니다)</p>
+
+      <div class="edu-sub"><span class="bar"></span>축종별 유통비용률 (2024년)</div>
+      <div class="hbar">
+        <div class="lb"><span class="n">닭고기</span><span class="v">61.3% <span style="color:#DC2626; font-size:11px;">▲2.3%p</span></span></div>
+        <div class="tr"><div class="fl" style="width:87%; background:${C_RETL};"></div></div>
+      </div>
+      <div class="hbar">
+        <div class="lb"><span class="n">쇠고기</span><span class="v">51.5% <span style="color:#DC2626; font-size:11px;">▲1.1%p</span></span></div>
+        <div class="tr"><div class="fl" style="width:73%; background:${C_WHOLE};"></div></div>
+      </div>
+      <div class="hbar">
+        <div class="lb"><span class="n">돼지고기</span><span class="v">45.8% <span style="color:#15803D; font-size:11px;">▼4.5%p</span></span></div>
+        <div class="tr"><div class="fl" style="width:65%; background:${C_OUT};"></div></div>
+      </div>
+      <p class="muted">막대 길이는 70%를 기준으로 그렸습니다. 괄호 안은 전년 대비 증감입니다.</p>
+
+      <div class="edu-sub"><span class="bar"></span>표로 보기</div>
+      <table class="edu-table">
+        <tr><th>구분</th><th>쇠고기</th><th>돼지고기</th><th>닭고기</th></tr>
+        <tr><td class="hd">유통비용률</td><td class="c">51.5%</td><td class="c">45.8%</td><td class="c">61.3%</td></tr>
+        <tr><td class="hd">생산자 수취율</td><td class="c">48.5%</td><td class="c">52.8%</td><td class="c">39.5%</td></tr>
+        <tr><td class="hd">두(수)당<br>유통비용</td><td class="c">8,557,116원</td><td class="c">399,759원</td><td class="c">4,066원</td></tr>
+      </table>
+
+      <div class="edu-sub"><span class="bar"></span>단계별로 어떤 비용이 드나</div>
+      <table class="edu-table">
+        <tr><th style="width:22%;">단계</th><th>주요 비용</th></tr>
+        <tr><td class="hd">출하</td><td>운송비(차량·유류·인건비), 출하 수수료, 검사비</td></tr>
+        <tr><td class="hd">도매</td><td>도축·분할·포장 가공비, 냉장·냉동 저장비, 등급판정 수수료, 도매 마진</td></tr>
+        <tr><td class="hd">소매</td><td>쇼케이스·냉장 유지비, 진열·포장·폐기 관리비, 판매 인건비, 임차료, 소매 마진</td></tr>
+      </table>
+      <div class="edu-src">자료 : 축산물품질평가원 「축산물 유통정보조사 보고서(2024)」</div>`
+  },
+  {
+    icon: '🐮', bg: '#F3E8FF', fg: '#7E22CE',
+    title: '축종별 유통구조',
+    sub: '쇠고기·돼지·닭오리·계란·벌꿀',
+    body: `
+      <p>축종마다 가격이 정해지는 방식이 다릅니다. 쇠고기는 <b>경매 중심</b>, 돼지고기는 <b>직매(계약) 중심</b>,
+      닭·오리는 <b>계열업체 중심의 수직계열화</b>, 계란은 <b>선별포장(GP) 경유</b>, 벌꿀은 <b>직거래 중심</b>입니다.</p>
+
+      <div class="def">
+        <h5>🐮 쇠고기 — 경매가 기준을 만든다</h5>
+        <p>공판장·도축장 경매에서 등급별 경락가격이 형성되고, 이 가격이 산지 거래와 부분육 가격의 기준이 됩니다.
+        등급과 이력 정보가 가장 촘촘하게 연결된 축종이며, 도체 영상을 활용한 온라인 경매가 확대되고 있습니다.</p>
+      </div>
+      <div class="def g">
+        <h5>🐷 돼지고기 — 계약으로 직매된다</h5>
+        <p>대부분 식육포장처리업체·육가공업체와 농가 간 계약으로 직매되며, 도체 등급과 도체중에 따라 정산가격이 달라집니다.
+        아프리카돼지열병(ASF) 등 질병 발생은 이동 제한과 공급 변동을 통해 유통에 큰 영향을 줍니다.</p>
+      </div>
+      <div class="def o">
+        <h5>🐔 닭·오리고기 — 계열업체가 주도한다</h5>
+        <p>계열업체가 병아리·사료를 공급하고 농가는 사육수수료를 받는 위탁사육(수직계열화) 구조로, 도계·가공·판매까지 계열업체가 주도합니다.
+        거래 공정성을 위해 2020년부터 닭·오리 도매 판매가격 신고가 의무화되었습니다.</p>
+      </div>
+      <div class="def">
+        <h5>🥚 계란 — 선별포장장(GP)을 반드시 거친다</h5>
+        <p>가정용 계란은 식용란선별포장업체에서 세척·검란·선별·포장을 거쳐야 유통할 수 있습니다.
+        생산자단체의 가격고시는 폐지되었고, 축산물품질평가원이 주 1회 「계란 수급 동향 정보지」로 산지가격 정보를 제공합니다.</p>
+      </div>
+      <div class="def g">
+        <h5>🍯 벌꿀 — 직거래 비중이 높다</h5>
+        <p>양봉농가의 직거래·온라인 판매 비중이 높고 일부는 농협 수매를 거쳐 도매로 유통됩니다.
+        품질 차별화를 위해 꿀 등급판정(1<sup>+</sup>·1·2)을 받아 판매하기도 합니다.</p>
+      </div>
+
+      <div class="edu-sub"><span class="bar"></span>한눈에 비교하기</div>
+      <table class="edu-table">
+        <tr><th style="width:17%;">축종</th><th>출하</th><th>주요 소매 채널</th><th>가격 결정</th></tr>
+        <tr><td class="hd">쇠고기</td><td>경매 63.1%<br>직매 36.9%</td><td>정육점 21.6%<br>음식점 20.7%</td><td>경락가격 연동<br>(등급)</td></tr>
+        <tr><td class="hd">돼지고기</td><td>직매 95.5%<br>경매 4.5%</td><td>정육점 30.0%<br>음식점 16.3%</td><td>계약가격<br>+가공비·마진</td></tr>
+        <tr><td class="hd">닭고기</td><td>계열출하 95.8%<br>일반 4.2%</td><td>프랜차이즈 24.9%<br>대형마트 16.6%</td><td>생계시세<br>+유통비용</td></tr>
+        <tr><td class="hd">오리고기</td><td>계열화율 약 98%</td><td>전문판매점·음식점</td><td>계열업체 정가</td></tr>
+        <tr><td class="hd">계란</td><td>선별포장(GP) 경유</td><td>대형마트 32.9%<br>슈퍼마켓 31.5%</td><td>산지가격<br>+유통비용</td></tr>
+        <tr><td class="hd">벌꿀</td><td>농협수매 30.6%</td><td>직거래 43.6%<br>소매점 43.0%</td><td>협상가격<br>(등급 반영)</td></tr>
+      </table>
+      <div class="edu-src">자료 : 축산물품질평가원 「축산물 유통정보조사 보고서(2023~2024)」 · 소매 비중은 판매량 기준 상위 채널<br>
+      공통 추세 : 모든 축종에서 식육포장처리업체와 계열업체 비중이 커지고, 위생·안전 관리와 등급·이력 정보의 활용이 강화되고 있습니다.</div>`
+  },
+  {
+    icon: '📱', bg: '#E0E7FF', fg: '#4338CA',
+    title: '현장에서 쓰는 축산 정보',
+    sub: '가격·수급·이력을 확인하는 곳',
+    body: `
+      <div class="def">
+        <h5>축산유통정보 (다봄)</h5>
+        <p>소·돼지 경락가격, 부분육·소비자가격, 수급 동향과 유통정보조사 보고서를 제공합니다.
+        <b>매일 18시 전국 경락가격을 카카오톡으로 알려주는 서비스</b>도 있습니다.</p>
+      </div>
+      <div class="def g">
+        <h5>축산유통 통계누리 · 축산물이력제 누리집</h5>
+        <p>사육·도축·이력 통계를 보고, 이력번호를 직접 조회할 수 있습니다.</p>
+      </div>
+      <div class="def o">
+        <h5>축산물원패스</h5>
+        <p>등급판정확인서와 이력 정보를 한 번에 확인할 수 있습니다. 학교급식 검수 등에 활용됩니다.</p>
+      </div>
+      <p class="muted">위 서비스는 모두 축산물품질평가원이 운영합니다. 문의 : 1577-2633</p>`
+  }
+];
+
+let eduOpen = {};
+
+function renderEdu() {
+  document.getElementById('edu-list').innerHTML = EDU_DATA.map((e, i) => `
+    <div class="edu-card ${eduOpen[i] ? 'open' : ''}" id="edu-${i}">
+      <div class="edu-head" onclick="toggleEdu(${i})">
+        <div class="edu-ico" style="background:${e.bg}; color:${e.fg};">${e.icon}</div>
+        <div class="edu-t">
+          <h4>${esc(e.title)}</h4>
+          <p>${esc(e.sub)}</p>
+        </div>
+        <span class="edu-arrow">❯</span>
+      </div>
+      <div class="edu-body">${e.body}</div>
+    </div>`).join('');
+}
+
+function toggleEdu(i) {
+  eduOpen[i] = !eduOpen[i];
+  const el = document.getElementById('edu-' + i);
+  if (!el) return;
+  el.classList.toggle('open', !!eduOpen[i]);
+  if (eduOpen[i]) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+}
+
+/* ── INITIALIZE ── */
+window.onload = () => {
+  initManual();
+  filterManual();
+  initFaqFilters();
+  filterFaq();
+  renderChecks();
+  renderEdu();
+  triggerStagger('home-stagger');
+
+  // 자정을 넘기면 당일 점검표를 새로 시작한다
+  setInterval(checkRollover, 30000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) checkRollover(); });
+  window.addEventListener('focus', checkRollover);
+};
+</script>
+</body>
+</html>
